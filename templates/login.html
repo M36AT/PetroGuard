@@ -1,1 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetroGuard - OSINT Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2aa9a6, #9ee4e1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            width: 1000px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .left-panel {
+            flex: 1.2;
+            background: linear-gradient(rgba(42, 169, 166, 0.9), rgba(158, 228, 225, 0.9)), 
+                        url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background-image 0.5s ease;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .logo p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .features {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .features li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .features i {
+            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .footer {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 20px;
+        }
+        
+        .right-panel {
+            flex: 1;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #f9fafc;
+        }
+        
+        .login-header {
+            margin-bottom: 40px;
+        }
+        
+        .login-header h2 {
+            color: #2aa9a6;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #2aa9a6;
+            box-shadow: 0 0 0 3px rgba(42, 169, 166, 0.1);
+        }
+        
+        .input-group i {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            color: #94a3b8;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .login-button:hover {
+            background: #238a87;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 169, 166, 0.3);
+        }
+        
+        .login-button:active {
+            transform: translateY(0);
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .forgot-password a {
+            color: #2aa9a6;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+            padding: 10px;
+            background: #fed7d7;
+            border-radius: 6px;
+        }
+        
+        .success-message {
+            color: #38a169;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+            padding: 10px;
+            background: #c6f6d5;
+            border-radius: 6px;
+        }
+        
+        /* Welcome Popup Styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .welcome-popup {
+            width: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            cursor: move;
+        }
+        
+        .popup-overlay.active .welcome-popup {
+            transform: scale(1);
+        }
+        
+        .popup-header {
+            background: linear-gradient(135deg, #2aa9a6, #9ee4e1);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        
+        .popup-header h2 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .close-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .popup-body {
+            padding: 30px;
+        }
+        
+        .popup-body p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .popup-body h3 {
+            color: #2aa9a6;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .popup-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+        
+        .popup-features li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .popup-features i {
+            margin-right: 10px;
+            color: #2aa9a6;
+            margin-top: 3px;
+        }
+        
+        .popup-footer {
+            display: flex;
+            justify-content: flex-end;
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .continue-btn {
+            padding: 10px 25px;
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .continue-btn:hover {
+            background: #238a87;
+        }
+        
+        /* Settings Icon - FIXED POSITIONING */
+        .settings-icon {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #2aa9a6;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+        }
+        
+        .settings-icon:hover {
+            background: #238a87;
+            transform: scale(1.1) rotate(30deg);
+        }
+        
+        /* Language Selector */
+        .language-selector {
+            position: fixed;
+            top: 30px;
+            left: 10px;
+            z-index: 1000;
+            background: #2aa9a6;
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .language-selector:hover {
+            background: #238a87;
+        }
+        
+        .language-selector select {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .language-selector option {
+            background: #2aa9a6;
+            color: white;
+        }
+        
+        /* Image Selection Panel */
+        .image-panel {
+            position: fixed;
+            top: 90px;
+            right: 30px;
+            background: rgba(255,255,255,0.98);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 999;
+            max-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .image-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .image-panel h4 {
+            margin-bottom: 15px;
+            color: #2aa9a6;
+            font-size: 16px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .image-option {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .image-option:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .image-option.active {
+            background: #2aa9a6;
+            color: white;
+            border-color: #238a87;
+        }
+        
+        .image-option i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        
+        .custom-url-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .custom-url-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .load-image-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .load-image-btn:hover {
+            background: #238a87;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                width: 100%;
+                max-width: 500px;
+            }
+            
+            .left-panel {
+                display: none;
+            }
+            
+            .right-panel {
+                padding: 40px 30px;
+            }
+            
+            .welcome-popup {
+                width: 90%;
+                max-width: 400px;
+            }
+            
+            .settings-icon {
+                top: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
+            
+            .image-panel {
+                top: 75px;
+                right: 20px;
+                max-width: 250px;
+            }
+            
+            .language-selector {
+                top: 20px;
+                left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Popup -->
+    <div class="popup-overlay active" id="welcomePopup">
+        <div class="welcome-popup" id="draggablePopup">
+            <div class="popup-header" id="popupHeader">
+                <h2 data-i18n="welcome_title">Welcome to PetroGuard</h2>
+                <button class="close-btn" id="closePopup">&times;</button>
+            </div>
+            <div class="popup-body">
+                <p data-i18n="welcome_message">Welcome to PetroGuard, our advanced OSINT tool designed to help you collect, process, and visualize public data efficiently and securely.</p>
+                
+                <h3 data-i18n="key_features">Key Features:</h3>
+                <ul class="popup-features">
+                    <li><i class="fas fa-shield-alt"></i> <span data-i18n="feature_1">Secure data collection from multiple public sources</span></li>
+                    <li><i class="fas fa-chart-line"></i> <span data-i18n="feature_2">Advanced analytics and data visualization</span></li>
+                    <li><i class="fas fa-bolt"></i> <span data-i18n="feature_3">Real-time data processing capabilities</span></li>
+                    <li><i class="fas fa-user-lock"></i> <span data-i18n="feature_4">Role-based access control for enhanced security</span></li>
+                </ul>
+                
+                <p data-i18n="login_prompt">Please log in with your employee credentials to access the full suite of PetroGuard tools and features.</p>
+            </div>
+            <div class="popup-footer">
+                <button class="continue-btn" id="continueBtn" data-i18n="continue_button">Continue to Login</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="ms">Bahasa Malaysia</option>
+        </select>
+    </div>
+
+    <!-- Settings Icon - NOW VISIBLE -->
+    <div class="settings-icon" id="settingsIcon">
+        <i class="fas fa-image"></i>
+    </div>
+
+    <!-- Image Selection Panel -->
+    <div class="image-panel" id="imagePanel">
+        <h4 data-i18n="change_background">Change Background Image</h4>
+        <button class="image-option active" data-image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80">
+            <i class="fas fa-industry"></i> <span data-i18n="oil_rig">Oil Rig</span>
+        </button>
+        <button class="image-option" data-image="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80">
+            <i class="fas fa-chart-bar"></i> <span data-i18n="data_viz">Data Visualization</span>
+        </button>
+        <button class="image-option" data-image="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80">
+            <i class="fas fa-shield-alt"></i> <span data-i18n="network_security">Network Security</span>
+        </button>
+        <button class="image-option" data-image="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80">
+            <i class="fas fa-code"></i> <span data-i18n="abstract_tech">Abstract Tech</span>
+        </button>
+        
+        <div class="custom-url-section">
+            <input type="text" class="custom-url-input" id="customImageUrl" data-i18n-placeholder="paste_url" placeholder="Paste custom image URL">
+            <button class="load-image-btn" onclick="loadCustomImage()">
+                <i class="fas fa-upload"></i> <span data-i18n="load_custom">Load Custom Image</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Login Page -->
+    <div class="container">
+        <div class="left-panel" id="leftPanel">
+            <div>
+                <div class="logo">
+                    <h1>PetroGuard</h1>
+                    <p data-i18n="app_description">Lightweight OSINT tool to collect, process, and visualize public data.</p>
+                </div>
+                
+                <ul class="features">
+                    <li><i class="fas fa-database"></i> <span data-i18n="feature_a">Advanced data collection from public sources</span></li>
+                    <li><i class="fas fa-chart-line"></i> <span data-i18n="feature_b">Intelligent data processing algorithms</span></li>
+                    <li><i class="fas fa-project-diagram"></i> <span data-i18n="feature_c">Interactive data visualization tools</span></li>
+                    <li><i class="fas fa-shield-alt"></i> <span data-i18n="feature_d">Secure and anonymous data handling</span></li>
+                    <li><i class="fas fa-bolt"></i> <span data-i18n="feature_e">Fast and efficient data analysis</span></li>
+                </ul>
+            </div>
+            
+            <div class="footer">
+                <p data-i18n="copyright">© 2023 PetroGuard OSINT Tool. All rights reserved.</p>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="login-header">
+                <h2 data-i18n="employee_login">Employee Login</h2>
+                <p data-i18n="access_dashboard">Access the PetroGuard OSINT dashboard</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="employeeId" data-i18n="employee_id">Employee ID</label>
+                    <input type="text" id="employeeId" name="employeeId" data-i18n-placeholder="enter_employee_id" placeholder="Enter your Employee ID" required>
+                    <i class="fas fa-user"></i>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password" data-i18n="password">Password</label>
+                    <input type="password" id="password" name="password" data-i18n-placeholder="enter_password" placeholder="Enter your password" required>
+                    <i class="fas fa-lock"></i>
+                </div>
+                
+                <button type="submit" class="login-button" data-i18n="login_button">Login to Dashboard</button>
+                
+                <div class="error-message" id="errorMessage" data-i18n="error_message">
+                    Invalid Employee ID or Password. Please try again.
+                </div>
+                
+                <div class="success-message" id="successMessage" data-i18n="success_message">
+                    Login successful! Redirecting to OSINT dashboard...
+                </div>
+                
+                <div class="forgot-password">
+                    <a href="#" data-i18n="forgot_password">Forgot Password?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Language Configuration
+        const translations = {
+            en: {
+                // Welcome popup
+                welcome_title: "Welcome to PetroGuard",
+                welcome_message: "Welcome to PetroGuard, our advanced OSINT tool designed to help you collect, process, and visualize public data efficiently and securely.",
+                key_features: "Key Features:",
+                feature_1: "Secure data collection from multiple public sources",
+                feature_2: "Advanced analytics and data visualization",
+                feature_3: "Real-time data processing capabilities",
+                feature_4: "Role-based access control for enhanced security",
+                login_prompt: "Please log in with your employee credentials to access the full suite of PetroGuard tools and features.",
+                continue_button: "Continue to Login",
+                
+                // Image panel
+                change_background: "Change Background Image",
+                oil_rig: "Oil Rig",
+                data_viz: "Data Visualization",
+                network_security: "Network Security",
+                abstract_tech: "Abstract Tech",
+                paste_url: "Paste custom image URL",
+                load_custom: "Load Custom Image",
+                
+                // Main page
+                app_description: "Lightweight OSINT tool to collect, process, and visualize public data.",
+                feature_a: "Advanced data collection from public sources",
+                feature_b: "Intelligent data processing algorithms",
+                feature_c: "Interactive data visualization tools",
+                feature_d: "Secure and anonymous data handling",
+                feature_e: "Fast and efficient data analysis",
+                copyright: "© 2023 PetroGuard OSINT Tool. All rights reserved.",
+                
+                // Login form
+                employee_login: "Employee Login",
+                access_dashboard: "Access the PetroGuard OSINT dashboard",
+                employee_id: "Employee ID",
+                enter_employee_id: "Enter your Employee ID",
+                password: "Password",
+                enter_password: "Enter your password",
+                login_button: "Login to Dashboard",
+                error_message: "Invalid Employee ID or Password. Please try again.",
+                success_message: "Login successful! Redirecting to OSINT dashboard...",
+                forgot_password: "Forgot Password?"
+            },
+            ms: {
+                // Welcome popup
+                welcome_title: "Selamat Datang ke PetroGuard",
+                welcome_message: "Selamat datang ke PetroGuard, alat OSINT canggih kami yang direka untuk membantu anda mengumpul, memproses dan menggambarkan data awam dengan cekap dan selamat.",
+                key_features: "Ciri Utama:",
+                feature_1: "Pengumpulan data yang selamat dari pelbagai sumber awam",
+                feature_2: "Analisis lanjutan dan visualisasi data",
+                feature_3: "Keupayaan pemprosesan data masa nyata",
+                feature_4: "Kawalan akses berasaskan peranan untuk keselamatan yang lebih baik",
+                login_prompt: "Sila log masuk dengan kelayakan pekerja anda untuk mengakses keseluruhan suite alat dan ciri PetroGuard.",
+                continue_button: "Teruskan ke Log Masuk",
+                
+                // Image panel
+                change_background: "Tukar Imej Latar Belakang",
+                oil_rig: "Platform Minyak",
+                data_viz: "Visualisasi Data",
+                network_security: "Keselamatan Rangkaian",
+                abstract_tech: "Teknologi Abstrak",
+                paste_url: "Tampal URL imej tersuai",
+                load_custom: "Muat Imej Tersuai",
+                
+                // Main page
+                app_description: "Alat OSINT ringan untuk mengumpul, memproses, dan menggambarkan data awam.",
+                feature_a: "Pengumpulan data lanjutan dari sumber awam",
+                feature_b: "Algoritma pemprosesan data pintar",
+                feature_c: "Alat visualisasi data interaktif",
+                feature_d: "Pengendalian data yang selamat dan tanpa nama",
+                feature_e: "Analisis data yang pantas dan cekap",
+                copyright: "© 2023 Alat OSINT PetroGuard. Hak cipta terpelihara.",
+                
+                // Login form
+                employee_login: "Log Masuk Pekerja",
+                access_dashboard: "Akses papan pemuka OSINT PetroGuard",
+                employee_id: "ID Pekerja",
+                enter_employee_id: "Masukkan ID Pekerja anda",
+                password: "Kata Laluan",
+                enter_password: "Masukkan kata laluan anda",
+                login_button: "Log Masuk ke Papan Pemuka",
+                error_message: "ID Pekerja atau Kata Laluan tidak sah. Sila cuba lagi.",
+                success_message: "Log masuk berjaya! Mengalihkan ke papan pemuka OSINT...",
+                forgot_password: "Lupa Kata Laluan?"
+            }
+        };
+
+        // Language Selection Functionality
+        const languageSelect = document.getElementById('languageSelect');
+        let currentLanguage = 'en';
+
+        // Load saved language preference
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLanguage = localStorage.getItem('petroguard-language');
+            if (savedLanguage) {
+                currentLanguage = savedLanguage;
+                languageSelect.value = savedLanguage;
+            }
+            updateLanguage();
+        });
+
+        // Update language when selection changes
+        languageSelect.addEventListener('change', function() {
+            currentLanguage = this.value;
+            localStorage.setItem('petroguard-language', currentLanguage);
+            updateLanguage();
+        });
+
+        // Update all text elements with translations
+        function updateLanguage() {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[currentLanguage][key]) {
+                    element.textContent = translations[currentLanguage][key];
+                }
+            });
+            
+            // Update placeholder texts
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[currentLanguage][key]) {
+                    element.placeholder = translations[currentLanguage][key];
+                }
+            });
+        }
+
+        // Settings Icon Functionality
+        const settingsIcon = document.getElementById('settingsIcon');
+        const imagePanel = document.getElementById('imagePanel');
+        
+        // Toggle image panel when settings icon is clicked
+        settingsIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            imagePanel.classList.toggle('active');
+        });
+        
+        // Close image panel when clicking outside
+        document.addEventListener('click', function() {
+            imagePanel.classList.remove('active');
+        });
+        
+        // Prevent closing when clicking inside the panel
+        imagePanel.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Image Selection Functionality
+        const imageOptions = document.querySelectorAll('.image-option');
+        const leftPanel = document.getElementById('leftPanel');
+        
+        // Set active image option
+        imageOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                imageOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                const imageUrl = this.getAttribute('data-image');
+                loadImage(imageUrl);
+                
+                // Close the panel after selection
+                setTimeout(() => {
+                    imagePanel.classList.remove('active');
+                }, 500);
+            });
+        });
+        
+        // Load image function
+        function loadImage(url) {
+            leftPanel.style.backgroundImage = `linear-gradient(rgba(42, 169, 166, 0.9), rgba(158, 228, 225, 0.9)), url('${url}')`;
+        }
+        
+        // Load custom image from URL input
+        function loadCustomImage() {
+            const customUrl = document.getElementById('customImageUrl').value;
+            if (customUrl) {
+                // Remove active class from all options
+                imageOptions.forEach(opt => opt.classList.remove('active'));
+                loadImage(customUrl);
+                
+                // Clear the input and close the panel
+                document.getElementById('customImageUrl').value = '';
+                setTimeout(() => {
+                    imagePanel.classList.remove('active');
+                }, 500);
+            }
+        }
+
+        // Welcome Popup Functionality
+        const welcomePopup = document.getElementById('welcomePopup');
+        const closePopup = document.getElementById('closePopup');
+        const continueBtn = document.getElementById('continueBtn');
+        const draggablePopup = document.getElementById('draggablePopup');
+        const popupHeader = document.getElementById('popupHeader');
+        
+        // Close popup when clicking X
+        closePopup.addEventListener('click', function() {
+            welcomePopup.classList.remove('active');
+        });
+        
+        // Close popup when clicking continue
+        continueBtn.addEventListener('click', function() {
+            welcomePopup.classList.remove('active');
+        });
+        
+        // Close popup when clicking outside of it
+        welcomePopup.addEventListener('click', function(e) {
+            if (e.target === welcomePopup) {
+                welcomePopup.classList.remove('active');
+            }
+        });
+        
+        // Make popup draggable
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+        
+        popupHeader.addEventListener("mousedown", dragStart);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", dragEnd);
+        
+        function dragStart(e) {
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+            
+            if (e.target === popupHeader) {
+                isDragging = true;
+            }
+        }
+        
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                xOffset = currentX;
+                yOffset = currentY;
+                
+                setTranslate(currentX, currentY, draggablePopup);
+            }
+        }
+        
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+        }
+        
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            
+            isDragging = false;
+        }
+        
+        // Login Form Functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const employeeId = document.getElementById('employeeId').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Hide messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Simple validation
+            if (!employeeId || !password) {
+                showError(currentLanguage === 'en' ? 'Please fill in all fields' : 'Sila isi semua medan');
+                return;
+            }
+            
+            // Demo authentication - Replace these with your actual credentials
+            const validCredentials = [
+                { id: 'admin', password: 'admin123' },
+                { id: 'user001', password: 'password123' },
+                { id: 'PG-OSINT-001', password: 'osint123' }
+            ];
+            
+            const isValid = validCredentials.some(cred => 
+                cred.id === employeeId && cred.password === password
+            );
+            
+            if (isValid) {
+                showSuccess();
+                
+                // Simulate redirect to dashboard after 2 seconds
+                setTimeout(function() {
+                    // In a real application, you would redirect to the dashboard
+                    // window.location.href = 'dashboard.html';
+                    // Reset form
+                    document.getElementById('loginForm').reset();
+                    resetButton();
+                    
+                    // For demo purposes, just show a message
+                    alert(currentLanguage === 'en' ? 'Login successful! Redirecting to dashboard...' : 'Log masuk berjaya! Mengalihkan ke papan pemuka...');
+                }, 2000);
+            } else {
+                showError(currentLanguage === 'en' ? 'Invalid Employee ID or Password. Please try again.' : 'ID Pekerja atau Kata Laluan tidak sah. Sila cuba lagi.');
+                resetButton();
+            }
+        });
+        
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+        
+        function showSuccess() {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            
+            // Change button to success state
+            const loginButton = document.querySelector('.login-button');
+            loginButton.textContent = currentLanguage === 'en' ? 'Accessing Dashboard...' : 'Mengakses Papan Pemuka...';
+            loginButton.style.background = '#38a169';
+            loginButton.disabled = true;
+        }
+        
+        function resetButton() {
+            const loginButton = document.querySelector('.login-button');
+            setTimeout(function() {
+                loginButton.textContent = translations[currentLanguage]['login_button'];
+                loginButton.style.background = '#2aa9a6';
+                loginButton.disabled = false;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
