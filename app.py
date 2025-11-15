@@ -297,4 +297,4 @@ def get_trends():
 # --- 6. RUN THE FLASK APP ---
 if __name__ == "__main__":
     init_db() # Create the database file and tables on first run
-    app.run(debug=True)
+    app.run(host-'0.0.0.0', debug=True)
