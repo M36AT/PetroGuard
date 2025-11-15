@@ -11,7 +11,7 @@ from flask import Flask, jsonify, render_template, request
 app = Flask(__name__)
 DB_FILE = "threat_profiles.db"
 
-def init_db():
+def create_tables():
     """Initializes the database and creates tables if they don't exist."""
     print("Initializing database...")
     con = sqlite3.connect(DB_FILE)
@@ -31,6 +31,12 @@ def init_db():
     )''')
     con.commit()
     con.close()
+
+@app.cli.command('init-db')
+def init_db_command():
+    """Clear existing data and create new tables."""
+    create_tables()
+    print('Initialized the database.')
 
 # --- 2. CONFIGURATION ---
 load_dotenv()
@@ -296,5 +302,5 @@ def get_trends():
 
 # --- 6. RUN THE FLASK APP ---
 if __name__ == "__main__":
-    init_db() # Create the database file and tables on first run
+    # Create the database file and tables on first run
     app.run(debug=True)
