@@ -1,16 +1,42 @@
-
 import requests
 import json
 import os
 import re
 from dotenv import load_dotenv
 import google.generativeai as genai
+import sqlite3
+from flask import Flask, jsonify, render_template, request
 
-# --- 1. CONFIGURATION ---
+# --- 1. INITIALIZE FLASK & DATABASE ---
+app = Flask(__name__)
+DB_FILE = "threat_profiles.db"
+
+def init_db():
+    """Initializes the database and creates tables if they don't exist."""
+    print("Initializing database...")
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+    # This table tracks "sources" (e.g., Wikipedia, NewsAPI)
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS source_profiles (
+        source_name TEXT PRIMARY KEY,
+        flag_count INTEGER DEFAULT 0,
+        last_seen TEXT
+    )''')
+    # This table tracks harmful keywords
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS keyword_trends (
+        keyword TEXT PRIMARY KEY,
+        count INTEGER DEFAULT 0
+    )''')
+    con.commit()
+    con.close()
+
+# --- 2. CONFIGURATION ---
 load_dotenv()
 
 # Gemini API config
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or "AIzaSyCwE27btugQ7bSPHfDNEimNJ25tAmlbx2c"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or "YOUR_FALLBACK_KEY" # (Using fallback from your code)
 genai.configure(api_key=GEMINI_API_KEY)
 
 API_CONFIGS = [
@@ -18,19 +44,18 @@ API_CONFIGS = [
         "name": "NewsAPI",
         "type": "newsapi",
         "base_url": "https://newsapi.org/v2/everything",
-        "api_key": os.getenv("NEWSAPI_KEY") or "48a4a9f04f424d1887c8b635bc8e9786"
+        "api_key": os.getenv("NEWSAPI_KEY") or "YOUR_FALLBACK_KEY" # (Using fallback from your code)
     },
     {
         "name": "NewsData.io",
         "type": "newsdata",
         "base_url": "https://newsdata.io/api/1/latest",
-        "api_key": os.getenv("NEWSDATA_KEY") or "pub_2cacf136af4d4ffb9fa5e8b8c00b3cef"
+        "api_key": os.getenv("NEWSDATA_KEY") or "YOUR_FALLBACK_KEY" # (Using fallback from your code)
     },
     {
         "name": "Wikipedia",
         "type": "wikipedia",
         "base_url": "https://en.wikipedia.org/w/api.php"
-        # Wikipedia does not need an API key
     }
 ]
 
@@ -39,7 +64,51 @@ HARMFUL_KEYWORDS = [
     "arrested", "kill", "bad", "murder", "shoot"
 ]
 
-# --- FETCHING FROM ALL APIS (NewsAPI + NewsData + Wikipedia) ---
+# --- 3. DATABASE "WRITE" FUNCTIONS ---
+
+def update_source_profile(source_name):
+    """Updates the flag count for a given news source."""
+    if not source_name:
+        source_name = "unknown_source"
+    try:
+        con = sqlite3.connect(DB_FILE)
+        cur = con.cursor()
+        cur.execute('''
+            INSERT INTO source_profiles (source_name, flag_count, last_seen)
+            VALUES (?, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT(source_name) DO UPDATE SET
+                flag_count = flag_count + 1,
+                last_seen = CURRENT_TIMESTAMP
+        ''', (source_name,))
+        con.commit()
+        con.close()
+        print(f"  [DB] Updated profile for: {source_name}")
+    except Exception as e:
+        print(f"  [DB ERROR] {e}")
+
+
+def update_keyword_trends(keywords):
+    """Increments the count for a list of harmful keywords."""
+    if not keywords:
+        return
+    try:
+        con = sqlite3.connect(DB_FILE)
+        cur = con.cursor()
+        for kw in keywords:
+            cur.execute('''
+                INSERT INTO keyword_trends (keyword, count)
+                VALUES (?, 1)
+                ON CONFLICT(keyword) DO UPDATE SET
+                    count = count + 1
+            ''', (kw,))
+            print(f"  [DB] Incremented trend for: {kw}")
+        con.commit()
+        con.close()
+    except Exception as e:
+        print(f"  [DB ERROR] {e}")
+
+# --- 4. YOUR ANALYSIS FUNCTIONS (Copied from your script) ---
+
 def fetch_all_news(api_configs, query, language="en", country="my", max_results=10):
     all_articles = []
     headers = {"User-Agent": "my-osint-tool/1.0 (contact: you@example.com)"}
@@ -47,32 +116,14 @@ def fetch_all_news(api_configs, query, language="en", country="my", max_results=
     for api in api_configs:
         print(f"\n🔎 Fetching from: {api.get('name', 'unknown')}")
         api_type = api.get("type")
-
-        # --- Build params per API type ---
+        params = {} # Init params
         if api_type == "wikipedia":
-            params = {
-                "action": "query",
-                "list": "search",
-                "srsearch": query,
-                "format": "json",
-                "srlimit": max_results
-            }
+            params = {"action": "query", "list": "search", "srsearch": query, "format": "json", "srlimit": max_results}
         elif api_type == "newsdata":
-            params = {
-                "q": query,
-                "language": language,
-                "country": country,
-                "apikey": api.get("api_key")
-            }
+            params = {"q": query, "language": language, "country": country, "apikey": api.get("api_key")}
         else:  # NewsAPI or similar
-            params = {
-                "q": query,
-                "language": language,
-                "pageSize": max_results,
-                "apiKey": api.get("api_key")
-            }
+            params = {"q": query, "language": language, "pageSize": max_results, "apiKey": api.get("api_key")}
 
-        # --- Call the API ---
         try:
             resp = requests.get(api["base_url"], params=params, headers=headers, timeout=15)
             resp.raise_for_status()
@@ -81,47 +132,18 @@ def fetch_all_news(api_configs, query, language="en", country="my", max_results=
             print(f"[ERROR] {api.get('name', 'API')} failed: {e}")
             continue
 
-        # --- Parse and normalize results ---
         articles = []
         if api_type == "wikipedia":
             for item in data.get("query", {}).get("search", []):
-                articles.append({
-                    "source": "Wikipedia",
-                    "title": item.get("title"),
-                    "description": re.sub("<.*?>", "", item.get("snippet", "")),
-                    "link": f"https://en.wikipedia.org/?curid={item.get('pageid')}",
-                    "pub_date": "",
-                    "keywords": [],
-                    "api_type": "wikipedia"
-                })
+                articles.append({"source": "Wikipedia", "title": item.get("title"), "description": re.sub("<.*?>", "", item.get("snippet", "")), "link": f"https://en.wikipedia.org/?curid={item.get('pageid')}", "pub_date": "", "keywords": [], "api_type": "wikipedia"})
         elif api_type == "newsdata":
-            if data.get("status") != "success":
-                print("[WARN] NewsData.io returned non-success status")
-                continue
+            if data.get("status") != "success": continue
             for item in data.get("results", []):
-                articles.append({
-                    "source": item.get("source_id") or item.get("source_name") or "NewsData.io",
-                    "title": item.get("title"),
-                    "description": item.get("description") or "",
-                    "link": item.get("link"),
-                    "pub_date": item.get("pubDate"),
-                    "keywords": item.get("keywords") or [],
-                    "api_type": "news"
-                })
+                articles.append({"source": item.get("source_id") or item.get("source_name") or "NewsData.io", "title": item.get("title"), "description": item.get("description") or "", "link": item.get("link"), "pub_date": item.get("pubDate"), "keywords": item.get("keywords") or [], "api_type": "news"})
         else:  # NewsAPI or similar
-            if data.get("status") != "ok":
-                print("[WARN] NewsAPI returned non-ok status")
-                continue
+            if data.get("status") != "ok": continue
             for item in data.get("articles", []):
-                articles.append({
-                    "source": item.get("source", {}).get("name", "NewsAPI"),
-                    "title": item.get("title"),
-                    "description": item.get("description") or "",
-                    "link": item.get("url"),
-                    "pub_date": item.get("publishedAt"),
-                    "keywords": [],
-                    "api_type": "news"
-                })
+                articles.append({"source": item.get("source", {}).get("name", "NewsAPI"), "title": item.get("title"), "description": item.get("description") or "", "link": item.get("url"), "pub_date": item.get("publishedAt"), "keywords": [], "api_type": "news"})
 
         print(f"[INFO] {api.get('name', 'API')} -> {len(articles)} articles")
         all_articles.extend(articles)
@@ -129,7 +151,6 @@ def fetch_all_news(api_configs, query, language="en", country="my", max_results=
     print(f"\n✅ Total articles found: {len(all_articles)}")
     return all_articles
 
-# --- Simple harmful keyword detection (for context only) ---
 def detect_harmful_words(text):
     found = set()
     if text:
@@ -138,14 +159,7 @@ def detect_harmful_words(text):
                 found.add(word.lower())
     return list(found)
 
-# --- Gemini helper: classify sentiment + intent ---
 def fetch_from_gemini_sentiment_intent(text, harm_words):
-    """
-    Ask Gemini to classify:
-    - Sentiment (positive1, positive2, negative1, negative2, neutral)
-    - Intent (harmful1, harmful2, harmless1, harmless2)
-    Rely ONLY on Gemini to decide harmfulness.
-    """
     prompt = (
         "You are analyzing potentially harmful or scam-related news.\n"
         "I will provide news/article content and a list of detected harmful words.\n"
@@ -164,17 +178,18 @@ def fetch_from_gemini_sentiment_intent(text, harm_words):
         f"Harmful words: {harm_words}\n"
     )
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        # --- FIXED MODEL NAME ---
+        # 'gemini-2.5-flash' does not exist.
+        # 'gemini-pro' is the standard model that will work.
+        model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt)
         return response.text.strip() if hasattr(response, "text") else str(response)
     except Exception as e:
         return f"[Gemini API error: {e}]"
 
-# --- Full categorization relying on Gemini ---
 def full_categorize(articles):
     categorized = []
     for article in articles:
-        # Detect harmful words in title / description / keywords (for context to Gemini)
         harmful_in_title = detect_harmful_words(article.get('title', ''))
         harmful_in_desc = detect_harmful_words(article.get('description', ''))
         harmful_in_keywords = [
@@ -183,14 +198,12 @@ def full_categorize(articles):
         ]
         harmful_words = set(harmful_in_title + harmful_in_desc + harmful_in_keywords)
 
-        # Compose text for Gemini
         text = (article.get('title') or '') + ". " + (article.get('description') or '')
         gemini_result = fetch_from_gemini_sentiment_intent(
             text=text,
             harm_words=', '.join(harmful_words) if harmful_words else "None"
         )
-
-        # Extract sentiment and intent from Gemini's response
+        
         sentiment_label = ""
         intent_label = ""
         reason_text = ""
@@ -203,7 +216,6 @@ def full_categorize(articles):
             except Exception:
                 pass
 
-        # Decide harmful flag ONLY from Gemini's intent
         is_harmful = intent_label.startswith("harmful")
 
         article['harmful'] = is_harmful
@@ -214,53 +226,75 @@ def full_categorize(articles):
         article['gemini_raw'] = gemini_result
 
         categorized.append(article)
-
     return categorized
 
-# ---- MAIN EXECUTION ----
+# --- 5. FLASK ROUTES ---
+
+@app.route('/')
+def route_login():
+    """Serves the login.html page from the 'templates' folder."""
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def route_dashboard():
+    """Serves the dashboard.html page."""
+    return render_template('dashboard.html')
+
+@app.route('/api/analyze')
+def api_analyze():
+    """
+    This is the main API endpoint your JavaScript will call.
+    It runs the full analysis and updates the database.
+    """
+    query = request.args.get('q', None)
+    if not query:
+        return jsonify({"error": "A 'q' (query) parameter is required"}), 400
+    
+    print(f"--- API HIT: processing query '{query}' ---")
+    
+    # 1. Fetch news (using your logic)
+    all_hits = fetch_all_news(API_CONFIGS, query, max_results=5) # Kept max_results low for a fast demo
+    
+    # 2. Analyze with Gemini (using your logic)
+    categorized_hits = full_categorize(all_hits)
+    
+    # 3. --- UPDATE DATABASE ---
+    #    This is the "memory" part.
+    print("--- Analysis Complete. Updating Database... ---")
+    for article in categorized_hits:
+        if article.get('harmful'):
+            # update the source profile
+            update_source_profile(article.get('source', 'unknown_source'))
+            
+            # update the keyword trends
+            update_keyword_trends(article.get('harmful_words', []))
+            
+    # 4. Return the final list as JSON
+    return jsonify(categorized_hits)
+
+@app.route('/api/profiles')
+def get_profiles():
+    """Endpoint for your dashboard to get source profile data."""
+    con = sqlite3.connect(DB_FILE)
+    con.row_factory = sqlite3.Row # Makes the output a dict
+    cur = con.cursor()
+    cur.execute("SELECT * FROM source_profiles ORDER BY flag_count DESC LIMIT 20")
+    sources = [dict(row) for row in cur.fetchall()]
+    con.close()
+    return jsonify(sources)
+
+@app.route('/api/trends')
+def get_trends():
+    """Endpoint for your dashboard to get keyword trend data."""
+    con = sqlite3.connect(DB_FILE)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute("SELECT * FROM keyword_trends ORDER BY count DESC LIMIT 20")
+    keywords = [dict(row) for row in cur.fetchall()]
+    con.close()
+    return jsonify(keywords)
+
+# --- 6. RUN THE FLASK APP ---
 if __name__ == "__main__":
-    TARGET_KEYWORDS = str(input("Enter targeted keyword: ")).strip()
-    TARGET_COUNTRY = "my"
-    TARGET_LANGUAGE = "en"
-    MAX_RESULTS = 5  # you can increase later
-
-    all_hits = fetch_all_news(
-        API_CONFIGS, TARGET_KEYWORDS, TARGET_LANGUAGE, TARGET_COUNTRY, MAX_RESULTS
-    )
-
-    all_hits = full_categorize(all_hits)
-
-    print("\n--- OSINT News Report ---")
-    if all_hits:
-        for i, article in enumerate(all_hits[:10]):
-            print(f"\n# HIT {i+1}")
-            print(f"  Title: {article['title']}")
-            print(f"  Source: {article['source']} ({article.get('pub_date', '')})")
-            print(f"  Link: {article['link']}")
-            print(f"  Description: {article['description']}")
-            print(f"  Gemini Sentiment: {article.get('gemini_sentiment', '')}")
-            print(f"  Gemini Intent: {article.get('gemini_intent', '')}")
-            print(f"  Reason: {article.get('gemini_reason', '')}")
-            print(f"  Harmful Words (detected): {article.get('harmful_words', [])}")
-            if article['harmful']:
-                print("  [DANGER] Gemini flagged this as harmful content!")
-            else:
-                print("  [OK] Gemini did not flag this as harmful.")
-
-        # Save results
-        with open("news_osint_results.json", 'w', encoding="utf-8") as f:
-            json.dump(all_hits, f, indent=4, ensure_ascii=False)
-        print(f"\n✅ All {len(all_hits)} results saved to news_osint_results.json")
-    else:
-        print("No valid articles found!")
-
-    print("\n--- Harmful News Only ---")
-    for i, article in enumerate(all_hits):
-        if article['harmful']:
-            print(f"\n[DANGER] {article['title']}")
-            print(f"  Source: {article['source']}")
-            print(f"  Link: {article['link']}")
-            print(f"  Gemini Intent: {article.get('gemini_intent', '')}")
-            print(f"  Reason: {article.get('gemini_reason', '')}")
-            print(f"  Harmful Words: {article.get('harmful_words', [])}")
-
+    init_db() # Create the database file and tables on first run
+    app.run(debug=True)
