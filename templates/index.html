@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetroGuard - OSINT Tool</title>
+    <style>
+        /* Add all the CSS from both files here */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* Copy all CSS styles from both files */
+    </style>
+</head>
+<body>
+    <!-- Login Page Content -->
+    <div id="login-page">
+        <!-- Copy entire login.html body content here -->
+    </div>
+
+    <!-- Dashboard Page Content -->
+    <div id="dashboard-page" style="display: none;">
+        <!-- Copy entire dashboard.html body content here -->
+    </div>
+
+    <script>
+        // Combined JavaScript for both pages
+        
+        // Login functionality
+        function handleLogin() {
+            // Your login validation code here
+            
+            // On successful login:
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('dashboard-page').style.display = 'block';
+        }
+
+        // Logout functionality  
+        function handleLogout() {
+            document.getElementById('dashboard-page').style.display = 'none';
+            document.getElementById('login-page').style.display = 'block';
+        }
+
+        // Add all other JavaScript functions from both files
+    </script>
+</body>
+</html>
