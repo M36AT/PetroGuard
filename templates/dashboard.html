@@ -1,1 +1,2315 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetroGuard - OSINT Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #2aa9a6, #9ee4e1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-right: 40px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .language-selector {
+            position: relative;
+        }
+        
+        .language-button {
+            background: white;
+            color: #2aa9a6;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .language-button:hover {
+            background: #f0f0f0;
+        }
+        
+        .language-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: white;
+            width: 150px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 101;
+        }
+        
+        .language-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .language-dropdown a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+        }
+        
+        .language-dropdown a:hover {
+            background: #f5f7fa;
+        }
+        
+        .language-dropdown a:last-child {
+            border-bottom: none;
+        }
+        
+        .language-dropdown a.active {
+            color: #2aa9a6;
+            font-weight: 600;
+        }
+        
+        .user-profile {
+            position: relative;
+        }
+        
+        .profile-icon {
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2aa9a6;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .profile-icon:hover {
+            transform: scale(1.05);
+        }
+        
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            width: 180px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-dropdown a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+        }
+        
+        .profile-dropdown a:hover {
+            background: #f5f7fa;
+        }
+        
+        .profile-dropdown a:last-child {
+            border-bottom: none;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .welcome-section {
+            margin-bottom: 30px;
+        }
+        
+        .welcome-section h1 {
+            font-size: 28px;
+            color: #2aa9a6;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-section p {
+            color: #6c757d;
+        }
+        
+        .search-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        .search-bar input:focus {
+            border-color: #2aa9a6;
+        }
+        
+        .search-bar button {
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .search-bar button:hover {
+            background: #238a87;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #2aa9a6;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .topics-list {
+            list-style: none;
+        }
+        
+        .topic-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .topic-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .topic-item:last-child {
+            border-bottom: none;
+        }
+        
+        .topic-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .topic-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .topic-stats {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .topic-trend {
+            font-weight: 600;
+        }
+        
+        .trend-up {
+            color: #38a169; /* Green for positive */
+        }
+        
+        .trend-down {
+            color: #e53e3e; /* Red for negative */
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        /* Explore Page Styles */
+        .explore-page, .threat-page, .user-details-page {
+            display: none;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+        
+        .back-button:hover {
+            background: #238a87;
+        }
+        
+        .results-bar {
+            background: #2aa9a6;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .topic-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .metric-card h3 {
+            color: #2aa9a6;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .metric-details {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .sentiment-positive {
+            color: #38a169;
+        }
+        
+        .sentiment-negative {
+            color: #e53e3e;
+        }
+        
+        .sentiment-neutral {
+            color: #d69e2e;
+        }
+        
+        .threat-low {
+            color: #38a169;
+        }
+        
+        .threat-medium {
+            color: #d69e2e;
+        }
+        
+        .threat-high {
+            color: #e53e3e;
+        }
+        
+        .platform-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .platform-tag {
+            background: #e9f7f6;
+            color: #2aa9a6;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .interest-chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .interest-chart-container h2 {
+            color: #2aa9a6;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .interest-chart {
+            height: 350px;
+            position: relative;
+        }
+        
+        /* Additional Explore Sections */
+        .explore-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .sentiment-chart-container, .platform-chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .sentiment-chart-container h2, .platform-chart-container h2 {
+            color: #2aa9a6;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sentiment-chart, .platform-chart {
+            height: 300px;
+            position: relative;
+        }
+        
+        .rising-topics-explore, .people-also-search {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .rising-topics-explore h2, .people-also-search h2 {
+            color: #2aa9a6;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .search-tag {
+            background: #e9f7f6;
+            color: #2aa9a6;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .search-tag:hover {
+            background: #d1f0ee;
+        }
+        
+        .posts-table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .posts-table-container h2 {
+            color: #2aa9a6;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .posts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .posts-table th {
+            background: #f8f9fa;
+            color: #2aa9a6;
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+        }
+        
+        .posts-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .posts-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .post-platform {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .post-sentiment {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .sentiment-positive-bg {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .sentiment-negative-bg {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .sentiment-neutral-bg {
+            background: #feebcb;
+            color: #744210;
+        }
+        
+        .related-topics {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .related-topics h3 {
+            color: #2aa9a6;
+            margin-bottom: 15px;
+        }
+        
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tag {
+            background: #e9f7f6;
+            color: #2aa9a6;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .tag:hover {
+            background: #d1f0ee;
+        }
+        
+        /* Threat Page Styles */
+        .threat-intel-bar {
+            background: #2aa9a6;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .threat-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .threat-score {
+            font-size: 42px;
+            font-weight: 700;
+            color: #e53e3e;
+        }
+        
+        .threat-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .threat-word {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .action-select {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .action-select:focus {
+            outline: none;
+            border-color: #2aa9a6;
+        }
+        
+        .report-btn {
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .report-btn:hover {
+            background: #238a87;
+        }
+        
+        /* User Details Page */
+        .user-summary {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .user-summary h2 {
+            color: #2aa9a6;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .user-metric-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .user-metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2aa9a6;
+            margin-bottom: 5px;
+        }
+        
+        .user-metric-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 30px;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #9ee4e1;
+        }
+        
+        .petronas-info {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 900px) {
+            .dashboard-grid, .explore-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .topic-metrics, .threat-metrics, .user-metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+            }
+            
+            .logo {
+                margin-right: 20px;
+            }
+            
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .header-controls {
+                order: 2;
+                margin-left: auto;
+            }
+            
+            .posts-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-container">
+            <div class="logo">PetroGuard</div>
+            <div class="nav-links">
+                <a href="#" class="active" data-page="dashboard">Home</a>
+                <a href="#" data-page="explore">Explore</a>
+                <a href="#" data-page="threat">Threat</a>
+            </div>
+        </div>
+        <div class="header-controls">
+            <div class="language-selector">
+                <button class="language-button" id="languageButton">
+                    <i class="fas fa-globe"></i> English
+                </button>
+                <div class="language-dropdown" id="languageDropdown">
+                    <a href="#" class="active" data-lang="en">English</a>
+                    <a href="#" data-lang="ms">Malay</a>
+                </div>
+            </div>
+            <div class="user-profile">
+                <div class="profile-icon" id="profileIcon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <a href="#"><i class="fas fa-user-circle"></i> View Profile</a>
+                    <a href="#" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div class="main-content dashboard-page">
+        <div class="welcome-section">
+            <h1 data-translate="welcome_message">Hello, <span id="userName">Alex Johnson</span></h1>
+            <p data-translate="welcome_description">Welcome to your OSINT dashboard. Here's what's happening today.</p>
+        </div>
+        
+        <div class="search-container">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Enter keyword to search..." data-translate-placeholder="search_placeholder">
+                <button id="searchButton"><i class="fas fa-search"></i> <span data-translate="search_button">Search</span></button>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> <span data-translate="rising_topics">Rising Topics</span></h2>
+                <ul class="topics-list" id="topicsList">
+                    <!-- Topics will be populated by JavaScript -->
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-chart-pie"></i> <span data-translate="overall_sentiment">Overall Sentiment</span> <span data-translate="last_24_hours">(Last 24 Hours)</span></h2>
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Explore Page -->
+    <div class="main-content explore-page">
+        <div class="page-header">
+            <h1 data-translate="explore_topic">Explore Topic</h1>
+            <button class="back-button" id="backButtonExplore">
+                <i class="fas fa-arrow-left"></i> <span data-translate="back_to_dashboard">Back to Dashboard</span>
+            </button>
+        </div>
+        
+        <div class="results-bar" id="resultsBar">
+            <span data-translate="results_for">Results for</span>: <span id="resultsTopicName">Topic Name</span>
+        </div>
+        
+        <div class="topic-metrics">
+            <div class="metric-card">
+                <h3><i class="fas fa-comment-alt"></i> <span data-translate="mentions_24h">Mentions in Last 24 Hours</span></h3>
+                <div class="metric-value" id="mentionsCount">0</div>
+                <div class="metric-details" data-translate="mentions_increase">+15% increase from previous day</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3><i class="fas fa-smile"></i> <span data-translate="sentiment_analysis">Sentiment Analysis</span></h3>
+                <div class="metric-value sentiment-positive" id="sentimentScore">0% Positive</div>
+                <div class="metric-details" data-translate="sentiment_based">Based on 12,500 social media posts</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3><i class="fas fa-shield-alt"></i> <span data-translate="threat_level">Threat Level</span></h3>
+                <div class="metric-value threat-medium" id="threatLevel">Medium</div>
+                <div class="metric-details" data-translate="monitor_escalation">Monitor for potential escalation</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3><i class="fas fa-globe"></i> <span data-translate="platforms_detected">Platform Detected</span></h3>
+                <div class="metric-value">5 <span data-translate="platforms">Platforms</span></div>
+                <div class="platform-list" id="platformList">
+                    <!-- Platforms will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="interest-chart-container">
+            <h2><i class="fas fa-chart-line"></i> <span data-translate="interest_over_time">Interest Over Time</span></h2>
+            <div class="interest-chart">
+                <canvas id="interestChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="explore-grid">
+            <div class="sentiment-chart-container">
+                <h2><i class="fas fa-chart-pie"></i> <span data-translate="sentiment_analysis">Sentiment Analysis</span></h2>
+                <div class="sentiment-chart">
+                    <canvas id="sentimentPieChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="platform-chart-container">
+                <h2><i class="fas fa-chart-bar"></i> <span data-translate="interest_by_platform">Interest by Platform</span></h2>
+                <div class="platform-chart">
+                    <canvas id="platformBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="rising-topics-explore">
+            <h2><i class="fas fa-fire"></i> <span data-translate="rising_topics">Rising Topics</span></h2>
+            <ul class="topics-list" id="exploreTopicsList">
+                <!-- Topics will be populated by JavaScript -->
+            </ul>
+        </div>
+        
+        <div class="people-also-search">
+            <h2><i class="fas fa-search"></i> <span data-translate="people_also_search">People Also Search</span></h2>
+            <div class="search-tags" id="searchTags">
+                <!-- Search tags will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="posts-table-container">
+            <h2><i class="fas fa-table"></i> <span data-translate="top_public_posts">Top Public Posts (Real-time)</span></h2>
+            <table class="posts-table" id="postsTable">
+                <thead>
+                    <tr>
+                        <th data-translate="username">Username</th>
+                        <th data-translate="platform">Platform</th>
+                        <th data-translate="date">Date</th>
+                        <th data-translate="post_snippets">Post Snippets</th>
+                        <th data-translate="sentiment">Sentiment</th>
+                    </tr>
+                </thead>
+                <tbody id="postsTableBody">
+                    <!-- Posts will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="related-topics">
+            <h3 data-translate="related_topics">Related Topics</h3>
+            <div class="tags-container" id="relatedTags">
+                <!-- Related tags will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Threat Page -->
+    <div class="main-content threat-page">
+        <div class="page-header">
+            <h1 data-translate="threat_intelligence">Threat Intelligence Center</h1>
+            <button class="back-button" id="backButtonThreat">
+                <i class="fas fa-arrow-left"></i> <span data-translate="back_to_dashboard">Back to Dashboard</span>
+            </button>
+        </div>
+        
+        <div class="threat-intel-bar">
+            <span data-translate="keyword">Keyword</span>: <span id="threatKeyword">cybersecurity</span>
+        </div>
+        
+        <div class="threat-metrics">
+            <div class="metric-card">
+                <h3><i class="fas fa-shield-alt"></i> <span data-translate="overall_threat_score">Overall Threat Score</span></h3>
+                <div class="threat-score" id="threatScore">0/100</div>
+                <div class="metric-details" data-translate="threat_analysis">Based on threat analysis algorithms</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> <span data-translate="threat_keywords_detected">Threat Keywords Detected</span></h3>
+                <div class="metric-value">12 <span data-translate="keywords">Keywords</span></div>
+                <div class="threat-words" id="threatWords">
+                    <!-- Threat words will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <h3><i class="fas fa-clock"></i> <span data-translate="time_range">Time Range</span></h3>
+                <div class="metric-value" data-translate="last_7_days">Last 7 Days</div>
+                <div class="metric-details" data-translate="monitoring_period">Monitoring period for threat detection</div>
+            </div>
+        </div>
+        
+        <div class="posts-table-container">
+            <h2><i class="fas fa-flag"></i> <span data-translate="flagged_posts">Flagged Posts and User Info</span></h2>
+            <table class="posts-table" id="threatTable">
+                <thead>
+                    <tr>
+                        <th data-translate="username">Username</th>
+                        <th data-translate="platform">Platform</th>
+                        <th data-translate="date">Date</th>
+                        <th data-translate="post_snippets">Post Snippets</th>
+                        <th data-translate="threat_words">Threat Words</th>
+                        <th data-translate="action">Action</th>
+                        <th data-translate="report">Report</th>
+                    </tr>
+                </thead>
+                <tbody id="threatTableBody">
+                    <!-- Threat posts will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- User Details Page -->
+    <div class="main-content user-details-page">
+        <div class="page-header">
+            <h1 data-translate="cybercrime_osint">Cybercrime OSINT Result</h1>
+            <button class="back-button" id="backButtonUser">
+                <i class="fas fa-arrow-left"></i> <span data-translate="back_to_threat">Back to Threat</span>
+            </button>
+        </div>
+        
+        <div class="results-bar" id="userResultsBar">
+            <span data-translate="user">User</span>: <span id="userNameDetail">dark_hacker_99</span> | <span data-translate="platform">Platform</span>: <span id="userPlatform">Twitter</span>
+        </div>
+        
+        <div class="user-summary">
+            <h2><i class="fas fa-user-shield"></i> <span data-translate="summary_review">Summary Review</span></h2>
+            <div class="user-metrics">
+                <div class="user-metric-card">
+                    <div class="user-metric-value" id="flagsCount">12</div>
+                    <div class="user-metric-label" data-translate="flags_found">Flags Found</div>
+                </div>
+                <div class="user-metric-card">
+                    <div class="user-metric-value threat-high" id="riskLevel">High</div>
+                    <div class="user-metric-label" data-translate="risk_level">Risk Level</div>
+                </div>
+                <div class="user-metric-card">
+                    <div class="user-metric-value" id="lastActive">3 hours ago</div>
+                    <div class="user-metric-label" data-translate="last_active">Last Active</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="posts-table-container">
+            <h2><i class="fas fa-table"></i> <span data-translate="user_posts_cybercrime">User Posts Related to Cybercrime</span></h2>
+            <table class="posts-table" id="userPostsTable">
+                <thead>
+                    <tr>
+                        <th data-translate="username">Username</th>
+                        <th data-translate="platform">Platform</th>
+                        <th data-translate="date">Date</th>
+                        <th data-translate="post_snippets">Post Snippets</th>
+                        <th data-translate="threat_words">Threat Words</th>
+                        <th data-translate="action">Action</th>
+                        <th data-translate="report">Report</th>
+                    </tr>
+                </thead>
+                <tbody id="userPostsTableBody">
+                    <!-- User posts will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <div class="petronas-info" data-translate="know_more_petronas">Know more about Petronas</div>
+                <div class="footer-links">
+                    <a href="#" data-translate="terms_of_use">Term of Use</a>
+                    <a href="#" data-translate="privacy_statement">Privacy Statement</a>
+                    <a href="#" data-translate="cookie_settings">Cookie Settings</a>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                © 2023 PetroGuard OSINT Tool. <span data-translate="all_rights_reserved">All rights reserved.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translation dictionary
+        const translations = {
+            en: {
+                // Navigation
+                home: "Home",
+                explore: "Explore",
+                threat: "Threat",
+                
+                // Dashboard
+                welcome_message: "Hello, ",
+                welcome_description: "Welcome to your OSINT dashboard. Here's what's happening today.",
+                search_placeholder: "Enter keyword to search...",
+                search_button: "Search",
+                rising_topics: "Rising Topics",
+                overall_sentiment: "Overall Sentiment",
+                last_24_hours: "(Last 24 Hours)",
+                
+                // Explore Page
+                explore_topic: "Explore Topic",
+                back_to_dashboard: "Back to Dashboard",
+                results_for: "Results for",
+                mentions_24h: "Mentions in Last 24 Hours",
+                mentions_increase: "+15% increase from previous day",
+                sentiment_analysis: "Sentiment Analysis",
+                sentiment_based: "Based on 12,500 social media posts",
+                threat_level: "Threat Level",
+                monitor_escalation: "Monitor for potential escalation",
+                platforms_detected: "Platform Detected",
+                platforms: "Platforms",
+                interest_over_time: "Interest Over Time",
+                interest_by_platform: "Interest by Platform",
+                people_also_search: "People Also Search",
+                top_public_posts: "Top Public Posts (Real-time)",
+                username: "Username",
+                platform: "Platform",
+                date: "Date",
+                post_snippets: "Post Snippets",
+                sentiment: "Sentiment",
+                related_topics: "Related Topics",
+                
+                // Threat Page
+                threat_intelligence: "Threat Intelligence Center",
+                keyword: "Keyword",
+                overall_threat_score: "Overall Threat Score",
+                threat_analysis: "Based on threat analysis algorithms",
+                threat_keywords_detected: "Threat Keywords Detected",
+                keywords: "Keywords",
+                time_range: "Time Range",
+                last_7_days: "Last 7 Days",
+                monitoring_period: "Monitoring period for threat detection",
+                flagged_posts: "Flagged Posts and User Info",
+                threat_words: "Threat Words",
+                action: "Action",
+                report: "Report",
+                
+                // User Details Page
+                cybercrime_osint: "Cybercrime OSINT Result",
+                back_to_threat: "Back to Threat",
+                user: "User",
+                summary_review: "Summary Review",
+                flags_found: "Flags Found",
+                risk_level: "Risk Level",
+                last_active: "Last Active",
+                user_posts_cybercrime: "User Posts Related to Cybercrime",
+                
+                // Footer
+                know_more_petronas: "Know more about Petronas",
+                terms_of_use: "Term of Use",
+                privacy_statement: "Privacy Statement",
+                cookie_settings: "Cookie Settings",
+                all_rights_reserved: "All rights reserved."
+            },
+            ms: {
+                // Navigation
+                home: "Laman Utama",
+                explore: "Teroka",
+                threat: "Ancaman",
+                
+                // Dashboard
+                welcome_message: "Helo, ",
+                welcome_description: "Selamat datang ke papan pemuka OSINT anda. Inilah yang berlaku hari ini.",
+                search_placeholder: "Masukkan kata kunci untuk carian...",
+                search_button: "Cari",
+                rising_topics: "Topik Meningkat",
+                overall_sentiment: "Sentimen Keseluruhan",
+                last_24_hours: "(24 Jam Terakhir)",
+                
+                // Explore Page
+                explore_topic: "Teroka Topik",
+                back_to_dashboard: "Kembali ke Papan Pemuka",
+                results_for: "Keputusan untuk",
+                mentions_24h: "Sebutan dalam 24 Jam Terakhir",
+                mentions_increase: "+15% peningkatan dari hari sebelumnya",
+                sentiment_analysis: "Analisis Sentimen",
+                sentiment_based: "Berdasarkan 12,500 kiriman media sosial",
+                threat_level: "Tahap Ancaman",
+                monitor_escalation: "Pantau untuk potensi eskalasi",
+                platforms_detected: "Platform Dikesan",
+                platforms: "Platform",
+                interest_over_time: "Minat Sepanjang Masa",
+                interest_by_platform: "Minat mengikut Platform",
+                people_also_search: "Orang Juga Mencari",
+                top_public_posts: "Kiriman Awam Teratas (Masa Nyata)",
+                username: "Nama Pengguna",
+                platform: "Platform",
+                date: "Tarikh",
+                post_snippets: "Potongan Kiriman",
+                sentiment: "Sentimen",
+                related_topics: "Topik Berkaitan",
+                
+                // Threat Page
+                threat_intelligence: "Pusat Risikan Ancaman",
+                keyword: "Kata Kunci",
+                overall_threat_score: "Skor Ancaman Keseluruhan",
+                threat_analysis: "Berdasarkan algoritma analisis ancaman",
+                threat_keywords_detected: "Kata Kunci Ancaman Dikesan",
+                keywords: "Kata Kunci",
+                time_range: "Julat Masa",
+                last_7_days: "7 Hari Terakhir",
+                monitoring_period: "Tempoh pemantauan untuk pengesanan ancaman",
+                flagged_posts: "Kiriman Ditanda dan Maklumat Pengguna",
+                threat_words: "Kata-Kata Ancaman",
+                action: "Tindakan",
+                report: "Laporan",
+                
+                // User Details Page
+                cybercrime_osint: "Keputusan OSINT Jenayah Siber",
+                back_to_threat: "Kembali ke Ancaman",
+                user: "Pengguna",
+                summary_review: "Ulasan Ringkasan",
+                flags_found: "Bendera Ditemui",
+                risk_level: "Tahap Risiko",
+                last_active: "Aktif Terakhir",
+                user_posts_cybercrime: "Kiriman Pengguna Berkaitan Jenayah Siber",
+                
+                // Footer
+                know_more_petronas: "Ketahui lebih lanjut tentang Petronas",
+                terms_of_use: "Terma Penggunaan",
+                privacy_statement: "Pernyataan Privasi",
+                cookie_settings: "Tetapan Kuki",
+                all_rights_reserved: "Hak cipta terpelihara."
+            }
+        };
+
+        // Global variable to store the last search query
+        window.lastSearchQuery = '';
+
+        // 12 Realistic Dummy Topics with Comprehensive Data
+        const topicsData = [
+            { 
+                id: 1, 
+                name: "Renewable Energy", 
+                mentions: 125000, 
+                growth: 24, 
+                trend: "up",
+                sentiment: 72,
+                threat: "low",
+                platforms: ["Twitter", "Reddit", "News Sites", "Blogs", "Forums"],
+                interestData: [30, 45, 60, 75, 90, 120, 150, 125, 110, 95, 130, 125, 140, 155, 125, 110, 95, 130, 125, 140, 155, 170, 165, 150],
+                platformData: {
+                    Twitter: 45000,
+                    Reddit: 32000,
+                    "News Sites": 28000,
+                    Blogs: 15000,
+                    Forums: 5000
+                },
+                sentimentData: {
+                    positive: 72,
+                    negative: 15,
+                    neutral: 13
+                },
+                relatedSearches: ["Solar Power", "Wind Energy", "Green Technology", "Sustainability", "Climate Change"],
+                posts: [
+                    { platform: "Twitter", username: "@eco_warrior", content: "The future is renewable! Solar and wind energy are becoming more affordable every year. #RenewableEnergy", time: "2 hours ago", sentiment: "positive" },
+                    { platform: "Reddit", username: "u/energy_analyst", content: "Just published a new analysis on renewable energy adoption rates. The growth is impressive!", time: "4 hours ago", sentiment: "positive" },
+                    { platform: "News Sites", username: "Energy Daily", content: "Breaking: New government incentives for renewable energy projects announced today", time: "6 hours ago", sentiment: "neutral" },
+                    { platform: "Twitter", username: "@skeptic_john", content: "Renewable energy is still too expensive and unreliable. We need better solutions.", time: "8 hours ago", sentiment: "negative" },
+                    { platform: "Blogs", username: "GreenTech Insider", content: "How renewable energy is transforming developing nations - an in-depth look", time: "10 hours ago", sentiment: "positive" }
+                ]
+            },
+            { 
+                id: 2, 
+                name: "Oil Price Fluctuation", 
+                mentions: 98000, 
+                growth: 18, 
+                trend: "up",
+                sentiment: 45,
+                threat: "medium",
+                platforms: ["Twitter", "News Sites", "Financial Forums", "Blogs"],
+                interestData: [20, 35, 50, 65, 80, 95, 110, 98, 85, 70, 90, 98, 105, 115, 98, 85, 70, 90, 98, 105, 115, 120, 110, 100],
+                platformData: {
+                    Twitter: 35000,
+                    "News Sites": 28000,
+                    "Financial Forums": 25000,
+                    Blogs: 10000
+                },
+                sentimentData: {
+                    positive: 45,
+                    negative: 40,
+                    neutral: 15
+                },
+                relatedSearches: ["Crude Oil", "Energy Markets", "OPEC", "Economic Impact", "Global Demand"],
+                posts: [
+                    { platform: "Twitter", username: "@oil_trader", content: "Oil prices surged 5% today after OPEC announcement. Big moves in energy sector expected.", time: "1 hour ago", sentiment: "neutral" },
+                    { platform: "News Sites", username: "Financial Times", content: "Analysis: How geopolitical tensions are affecting global oil prices", time: "3 hours ago", sentiment: "neutral" },
+                    { platform: "Financial Forums", username: "MarketWatcher22", content: "Just sold my energy stocks. Too much volatility in oil prices right now.", time: "5 hours ago", sentiment: "negative" },
+                    { platform: "Twitter", username: "@energy_insider", content: "Oil prices expected to stabilize by end of quarter according to industry experts", time: "7 hours ago", sentiment: "positive" },
+                    { platform: "Blogs", username: "Economic Outlook", content: "The impact of oil price fluctuations on emerging markets - detailed analysis", time: "9 hours ago", sentiment: "neutral" }
+                ]
+            },
+            { 
+                id: 3, 
+                name: "Cybersecurity Threats", 
+                mentions: 75000, 
+                growth: 32, 
+                trend: "up",
+                sentiment: 28,
+                threat: "high",
+                platforms: ["Twitter", "Reddit", "Security Forums", "Dark Web"],
+                interestData: [10, 25, 40, 55, 70, 85, 100, 75, 60, 45, 65, 75, 85, 95, 75, 60, 45, 65, 75, 85, 95, 105, 95, 85],
+                platformData: {
+                    Twitter: 28000,
+                    Reddit: 22000,
+                    "Security Forums": 18000,
+                    "Dark Web": 7000
+                },
+                sentimentData: {
+                    positive: 28,
+                    negative: 55,
+                    neutral: 17
+                },
+                relatedSearches: ["Data Breach", "Network Security", "Phishing", "Ransomware", "Cyber Attack"],
+                posts: [
+                    { platform: "Twitter", username: "@security_expert", content: "New zero-day vulnerability discovered in popular software. Patch immediately! #Cybersecurity", time: "45 minutes ago", sentiment: "negative" },
+                    { platform: "Reddit", username: "u/tech_security", content: "Just survived a sophisticated phishing attempt. Everyone needs to enable 2FA!", time: "2 hours ago", sentiment: "negative" },
+                    { platform: "Security Forums", username: "WhiteHat23", content: "New defense techniques against ransomware attacks - sharing my research", time: "4 hours ago", sentiment: "positive" },
+                    { platform: "Twitter", username: "@infosec_news", content: "Major data breach at financial institution. Millions of records potentially exposed.", time: "6 hours ago", sentiment: "negative" },
+                    { platform: "Dark Web", username: "AnonSource", content: "Leaked: Database of vulnerable systems. Security teams need to act fast.", time: "8 hours ago", sentiment: "negative" }
+                ]
+            },
+            { 
+                id: 4, 
+                name: "Fossil Fuel Regulations", 
+                mentions: 62000, 
+                growth: -8, 
+                trend: "down",
+                sentiment: 35,
+                threat: "medium",
+                platforms: ["Twitter", "News Sites", "Blogs", "Forums"],
+                interestData: [40, 45, 50, 55, 60, 65, 70, 68, 65, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34],
+                platformData: {
+                    Twitter: 25000,
+                    "News Sites": 22000,
+                    Blogs: 10000,
+                    Forums: 5000
+                },
+                sentimentData: {
+                    positive: 35,
+                    negative: 50,
+                    neutral: 15
+                },
+                relatedSearches: ["Carbon Tax", "Emission Standards", "Climate Policy", "Energy Transition", "Green Deal"],
+                posts: [
+                    { platform: "Twitter", username: "@policy_wonk", content: "New fossil fuel regulations will have significant impact on energy sector investments.", time: "3 hours ago", sentiment: "neutral" },
+                    { platform: "News Sites", username: "Energy Policy Review", content: "Analysis: How new regulations will affect traditional energy companies", time: "5 hours ago", sentiment: "negative" },
+                    { platform: "Blogs", username: "Green Advocate", content: "Finally! Stronger regulations on fossil fuels. A step in the right direction.", time: "7 hours ago", sentiment: "positive" },
+                    { platform: "Twitter", username: "@industry_voice", content: "These new regulations will cost jobs and hurt our economy. #BadPolicy", time: "9 hours ago", sentiment: "negative" },
+                    { platform: "Forums", username: "EnergyAnalyst42", content: "Discussion: Balancing environmental concerns with economic realities in energy policy", time: "11 hours ago", sentiment: "neutral" }
+                ]
+            }
+        ];
+
+        // Dummy data for threat intelligence - will be dynamically updated based on search
+        const threatData = {
+            threatScore: 78,
+            threatWords: ["hack", "breach", "vulnerability", "exploit", "malware", "phishing", "ransomware", "cyberattack", "data leak", "zero-day", "backdoor", "botnet"],
+            // This will be populated dynamically based on search keyword
+            flaggedPosts: []
+        };
+
+        // User data for user details page
+        const userData = {
+            "dark_hacker_99": {
+                username: "dark_hacker_99",
+                platform: "Twitter",
+                flagsCount: 12,
+                riskLevel: "High",
+                lastActive: "3 hours ago",
+                posts: [
+                    { username: "dark_hacker_99", platform: "Twitter", date: "2023-11-15", content: "Just found a major vulnerability in banking app. DM for details.", threatWords: ["vulnerability", "banking"], action: "Under Investigation", report: "" },
+                    { username: "dark_hacker_99", platform: "Twitter", date: "2023-11-10", content: "Anyone interested in zero-day exploits for mobile OS? Contact me.", threatWords: ["zero-day", "exploits"], action: "Under Investigation", report: "" },
+                    { username: "dark_hacker_99", platform: "Dark Web", date: "2023-11-05", content: "Selling access to corporate networks. Various industries available.", threatWords: ["corporate networks", "access"], action: "Reported", report: "Sent to cybersecurity team" },
+                    { username: "dark_hacker_99", platform: "Telegram", date: "2023-11-01", content: "New phishing kit with advanced evasion techniques available.", threatWords: ["phishing", "evasion"], action: "Under Investigation", report: "" }
+                ]
+            },
+            "cyber_criminal": {
+                username: "cyber_criminal",
+                platform: "Dark Web",
+                flagsCount: 8,
+                riskLevel: "High",
+                lastActive: "1 day ago",
+                posts: [
+                    { username: "cyber_criminal", platform: "Dark Web", date: "2023-11-14", content: "Selling database of 1M user credentials from major e-commerce site.", threatWords: ["database", "credentials"], action: "Reported", report: "Sent to authorities" },
+                    { username: "cyber_criminal", platform: "Dark Web", date: "2023-11-08", content: "Looking for partners for large-scale DDoS attack. DM for details.", threatWords: ["DDoS", "attack"], action: "Under Investigation", report: "" },
+                    { username: "cyber_criminal", platform: "Telegram", date: "2023-11-03", content: "New crypto mining malware available. Undetectable by most AV.", threatWords: ["malware", "crypto mining"], action: "Under Investigation", report: "" }
+                ]
+            },
+            "anon_hacker": {
+                username: "anon_hacker",
+                platform: "Reddit",
+                flagsCount: 5,
+                riskLevel: "Medium",
+                lastActive: "2 days ago",
+                posts: [
+                    { username: "anon_hacker", platform: "Reddit", date: "2023-11-13", content: "Tutorial: How to bypass 2FA on social media accounts.", threatWords: ["bypass", "2FA"], action: "Under Investigation", report: "" },
+                    { username: "anon_hacker", platform: "Reddit", date: "2023-11-07", content: "Found security flaw in popular messaging app. Will share for right price.", threatWords: ["security flaw", "messaging"], action: "Under Investigation", report: "" }
+                ]
+            },
+            "data_thief": {
+                username: "data_thief",
+                platform: "Telegram",
+                flagsCount: 7,
+                riskLevel: "High",
+                lastActive: "6 hours ago",
+                posts: [
+                    { username: "data_thief", platform: "Telegram", date: "2023-11-12", content: "Leaked: Internal documents from oil company. Contact for access.", threatWords: ["leaked", "internal documents"], action: "Reported", report: "Company notified" },
+                    { username: "data_thief", platform: "Telegram", date: "2023-11-06", content: "Selling access to government database. Serious inquiries only.", threatWords: ["government", "database"], action: "Under Investigation", report: "" }
+                ]
+            },
+            "malware_dev": {
+                username: "malware_dev",
+                platform: "Forums",
+                flagsCount: 10,
+                riskLevel: "High",
+                lastActive: "12 hours ago",
+                posts: [
+                    { username: "malware_dev", platform: "Forums", date: "2023-11-11", content: "New ransomware variant available. Customizable for targeted attacks.", threatWords: ["ransomware", "targeted attacks"], action: "Under Investigation", report: "" },
+                    { username: "malware_dev", platform: "Forums", date: "2023-11-04", content: "Remote access trojan with advanced persistence. Contact for demo.", threatWords: ["trojan", "persistence"], action: "Under Investigation", report: "" }
+                ]
+            }
+        };
+
+        // Generate threat posts based on the search keyword
+        function generateThreatPosts(keyword) {
+            if (!keyword) keyword = "cybersecurity";
+            
+            const threatTemplates = [
+                {
+                    username: "dark_hacker_99", 
+                    platform: "Twitter", 
+                    date: "2023-11-15", 
+                    content: `Just found a major vulnerability in ${keyword} systems. DM for details.`, 
+                    threatWords: ["vulnerability", keyword], 
+                    action: "Under Investigation", 
+                    report: ""
+                },
+                {
+                    username: "cyber_criminal", 
+                    platform: "Dark Web", 
+                    date: "2023-11-14", 
+                    content: `Selling database of 1M user credentials from ${keyword} site.`, 
+                    threatWords: ["database", "credentials", keyword], 
+                    action: "Reported", 
+                    report: "Sent to authorities"
+                },
+                {
+                    username: "anon_hacker", 
+                    platform: "Reddit", 
+                    date: "2023-11-13", 
+                    content: `Tutorial: How to bypass security in ${keyword} applications.`, 
+                    threatWords: ["bypass", "security", keyword], 
+                    action: "Under Investigation", 
+                    report: ""
+                },
+                {
+                    username: "data_thief", 
+                    platform: "Telegram", 
+                    date: "2023-11-12", 
+                    content: `Leaked: Internal documents from ${keyword} company. Contact for access.`, 
+                    threatWords: ["leaked", "internal documents", keyword], 
+                    action: "Reported", 
+                    report: "Company notified"
+                },
+                {
+                    username: "malware_dev", 
+                    platform: "Forums", 
+                    date: "2023-11-11", 
+                    content: `New ransomware variant targeting ${keyword} infrastructure available.`, 
+                    threatWords: ["ransomware", "targeting", keyword], 
+                    action: "Under Investigation", 
+                    report: ""
+                }
+            ];
+            
+            return threatTemplates;
+        }
+
+        const sentimentData = {
+            positive: 65,
+            negative: 20,
+            neutral: 15
+        };
+
+        // DOM Elements
+        const profileIcon = document.getElementById('profileIcon');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const logoutButton = document.getElementById('logoutButton');
+        const topicsList = document.getElementById('topicsList');
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const dashboardPage = document.querySelector('.dashboard-page');
+        const explorePage = document.querySelector('.explore-page');
+        const threatPage = document.querySelector('.threat-page');
+        const userDetailsPage = document.querySelector('.user-details-page');
+        const backButtonExplore = document.getElementById('backButtonExplore');
+        const backButtonThreat = document.getElementById('backButtonThreat');
+        const backButtonUser = document.getElementById('backButtonUser');
+        const resultsBar = document.getElementById('resultsBar');
+        const resultsTopicName = document.getElementById('resultsTopicName');
+        const mentionsCount = document.getElementById('mentionsCount');
+        const sentimentScore = document.getElementById('sentimentScore');
+        const threatLevel = document.getElementById('threatLevel');
+        const platformList = document.getElementById('platformList');
+        const relatedTags = document.getElementById('relatedTags');
+        const searchButton = document.getElementById('searchButton');
+        const searchInput = document.getElementById('searchInput');
+        const exploreTopicsList = document.getElementById('exploreTopicsList');
+        const searchTags = document.getElementById('searchTags');
+        const postsTableBody = document.getElementById('postsTableBody');
+        const threatKeyword = document.getElementById('threatKeyword');
+        const threatScore = document.getElementById('threatScore');
+        const threatWords = document.getElementById('threatWords');
+        const threatTableBody = document.getElementById('threatTableBody');
+        const userNameDetail = document.getElementById('userNameDetail');
+        const userPlatform = document.getElementById('userPlatform');
+        const flagsCount = document.getElementById('flagsCount');
+        const riskLevel = document.getElementById('riskLevel');
+        const lastActive = document.getElementById('lastActive');
+        const userPostsTableBody = document.getElementById('userPostsTableBody');
+        
+        // Language selector elements
+        const languageButton = document.getElementById('languageButton');
+        const languageDropdown = document.getElementById('languageDropdown');
+        const languageOptions = document.querySelectorAll('.language-dropdown a');
+
+        // Chart instances
+        let sentimentChart, interestChart, sentimentPieChart, platformBarChart;
+
+        // Current language
+        let currentLanguage = 'en';
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate topics list
+            renderTopics();
+            
+            // Initialize sentiment chart
+            initSentimentChart();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Apply initial language
+            applyLanguage(currentLanguage);
+        });
+
+        // Apply language to the interface
+        function applyLanguage(lang) {
+            // Update all elements with data-translate attribute
+            const elements = document.querySelectorAll('[data-translate]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            // Update placeholder texts
+            const placeholders = document.querySelectorAll('[data-translate-placeholder]');
+            placeholders.forEach(element => {
+                const key = element.getAttribute('data-translate-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Update language button text
+            if (lang === 'en') {
+                languageButton.innerHTML = '<i class="fas fa-globe"></i> English';
+            } else {
+                languageButton.innerHTML = '<i class="fas fa-globe"></i> Malay';
+            }
+            
+            // Update active language in dropdown
+            languageOptions.forEach(option => {
+                if (option.getAttribute('data-lang') === lang) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+            
+            // Update current language
+            currentLanguage = lang;
+        }
+
+        // Render topics list
+        function renderTopics() {
+            topicsList.innerHTML = '';
+            
+            topicsData.forEach(topic => {
+                const listItem = document.createElement('li');
+                listItem.className = 'topic-item';
+                listItem.setAttribute('data-id', topic.id);
+                
+                // Determine trend class based on growth
+                const trendClass = topic.growth >= 0 ? 'trend-up' : 'trend-down';
+                const trendIcon = topic.growth >= 0 ? 'up' : 'down';
+                
+                listItem.innerHTML = `
+                    <div class="topic-info">
+                        <div class="topic-name">${topic.name}</div>
+                        <div class="topic-stats">${topic.mentions.toLocaleString()} mentions</div>
+                    </div>
+                    <div class="topic-trend ${trendClass}">
+                        <i class="fas fa-arrow-${trendIcon}"></i> ${Math.abs(topic.growth)}%
+                    </div>
+                `;
+                
+                topicsList.appendChild(listItem);
+            });
+        }
+
+        // Initialize sentiment pie chart
+        function initSentimentChart() {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (sentimentChart) {
+                sentimentChart.destroy();
+            }
+            
+            sentimentChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Positive', 'Negative', 'Neutral'],
+                    datasets: [{
+                        data: [sentimentData.positive, sentimentData.negative, sentimentData.neutral],
+                        backgroundColor: [
+                            '#2aa9a6',
+                            '#e53e3e',
+                            '#a0aec0'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize interest over time line chart on explore page
+        function initInterestChart(topic) {
+            const ctx = document.getElementById('interestChart').getContext('2d');
+            
+            // Generate time labels for the last 24 hours
+            const timeLabels = [];
+            for (let i = 23; i >= 0; i--) {
+                const hour = new Date();
+                hour.setHours(hour.getHours() - i);
+                timeLabels.push(hour.getHours() + ':00');
+            }
+            
+            // Destroy existing chart if it exists
+            if (interestChart) {
+                interestChart.destroy();
+            }
+            
+            interestChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'Mentions',
+                        data: topic.interestData,
+                        borderColor: '#2aa9a6',
+                        backgroundColor: 'rgba(42, 169, 166, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#2aa9a6',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Mentions: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Number of Mentions'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time (Last 24 Hours)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize sentiment pie chart for explore page
+        function initSentimentPieChart(topic) {
+            const ctx = document.getElementById('sentimentPieChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (sentimentPieChart) {
+                sentimentPieChart.destroy();
+            }
+            
+            sentimentPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Positive', 'Negative', 'Neutral'],
+                    datasets: [{
+                        data: [topic.sentimentData.positive, topic.sentimentData.negative, topic.sentimentData.neutral],
+                        backgroundColor: [
+                            '#2aa9a6',
+                            '#e53e3e',
+                            '#a0aec0'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize platform bar chart for explore page
+        function initPlatformBarChart(topic) {
+            const ctx = document.getElementById('platformBarChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (platformBarChart) {
+                platformBarChart.destroy();
+            }
+            
+            const platforms = Object.keys(topic.platformData);
+            const platformValues = Object.values(topic.platformData);
+            
+            platformBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: platforms,
+                    datasets: [{
+                        label: 'Mentions',
+                        data: platformValues,
+                        backgroundColor: '#2aa9a6',
+                        borderColor: '#238a87',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Number of Mentions'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render explore page topics
+        function renderExploreTopics() {
+            exploreTopicsList.innerHTML = '';
+            
+            topicsData.forEach(topic => {
+                const listItem = document.createElement('li');
+                listItem.className = 'topic-item';
+                listItem.setAttribute('data-id', topic.id);
+                
+                // Determine trend class based on growth
+                const trendClass = topic.growth >= 0 ? 'trend-up' : 'trend-down';
+                const trendIcon = topic.growth >= 0 ? 'up' : 'down';
+                
+                listItem.innerHTML = `
+                    <div class="topic-info">
+                        <div class="topic-name">${topic.name}</div>
+                        <div class="topic-stats">${topic.mentions.toLocaleString()} mentions</div>
+                    </div>
+                    <div class="topic-trend ${trendClass}">
+                        <i class="fas fa-arrow-${trendIcon}"></i> ${Math.abs(topic.growth)}%
+                    </div>
+                `;
+                
+                exploreTopicsList.appendChild(listItem);
+            });
+        }
+
+        // Render search tags
+        function renderSearchTags(topic) {
+            searchTags.innerHTML = '';
+            
+            topic.relatedSearches.forEach(search => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'search-tag';
+                tagElement.textContent = search;
+                searchTags.appendChild(tagElement);
+            });
+        }
+
+        // Render posts table
+        function renderPostsTable(topic) {
+            postsTableBody.innerHTML = '';
+            
+            topic.posts.forEach(post => {
+                const row = document.createElement('tr');
+                
+                // Determine sentiment class
+                let sentimentClass = '';
+                if (post.sentiment === 'positive') {
+                    sentimentClass = 'sentiment-positive-bg';
+                } else if (post.sentiment === 'negative') {
+                    sentimentClass = 'sentiment-negative-bg';
+                } else {
+                    sentimentClass = 'sentiment-neutral-bg';
+                }
+                
+                row.innerHTML = `
+                    <td>${post.username}</td>
+                    <td>
+                        <div class="post-platform">
+                            <i class="fab fa-${post.platform.toLowerCase().replace(' ', '-')}"></i>
+                            ${post.platform}
+                        </div>
+                    </td>
+                    <td>${post.time}</td>
+                    <td>${post.content}</td>
+                    <td><span class="post-sentiment ${sentimentClass}">${post.sentiment}</span></td>
+                `;
+                
+                postsTableBody.appendChild(row);
+            });
+        }
+
+        // Render threat table with dynamic posts based on search keyword
+        function renderThreatTable(keyword) {
+            threatTableBody.innerHTML = '';
+            
+            // Generate threat posts based on the keyword
+            const threatPosts = generateThreatPosts(keyword);
+            
+            threatPosts.forEach(post => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td><a href="#" class="username-link" data-username="${post.username}">${post.username}</a></td>
+                    <td>${post.platform}</td>
+                    <td>${post.date}</td>
+                    <td>${post.content}</td>
+                    <td>${post.threatWords.join(', ')}</td>
+                    <td>
+                        <select class="action-select" data-id="${post.username}">
+                            <option ${post.action === 'Under Investigation' ? 'selected' : ''}>Under Investigation</option>
+                            <option ${post.action === 'Reported' ? 'selected' : ''}>Reported</option>
+                            <option>No Action</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="report-btn">${post.report || 'Generate Report'}</button>
+                    </td>
+                `;
+                
+                threatTableBody.appendChild(row);
+            });
+        }
+
+        // Render user details
+        function renderUserDetails(username) {
+            const user = userData[username] || userData["dark_hacker_99"];
+            
+            userNameDetail.textContent = user.username;
+            userPlatform.textContent = user.platform;
+            flagsCount.textContent = user.flagsCount;
+            riskLevel.textContent = user.riskLevel;
+            lastActive.textContent = user.lastActive;
+            
+            userPostsTableBody.innerHTML = '';
+            
+            user.posts.forEach(post => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${post.username}</td>
+                    <td>${post.platform}</td>
+                    <td>${post.date}</td>
+                    <td>${post.content}</td>
+                    <td>${post.threatWords.join(', ')}</td>
+                    <td>
+                        <select class="action-select" data-id="${post.username}">
+                            <option ${post.action === 'Under Investigation' ? 'selected' : ''}>Under Investigation</option>
+                            <option ${post.action === 'Reported' ? 'selected' : ''}>Reported</option>
+                            <option>No Action</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="report-btn">${post.report || 'Generate Report'}</button>
+                    </td>
+                `;
+                
+                userPostsTableBody.appendChild(row);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Profile dropdown toggle
+            profileIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('active');
+            });
+
+            // Language dropdown toggle
+            languageButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                languageDropdown.classList.toggle('active');
+            });
+
+            // Language selection
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const lang = this.getAttribute('data-lang');
+                    applyLanguage(lang);
+                    languageDropdown.classList.remove('active');
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                profileDropdown.classList.remove('active');
+                languageDropdown.classList.remove('active');
+            });
+
+            // Logout functionality
+            logoutButton.addEventListener('click', function() {
+                alert('Logging out...');
+                // In a real app, this would redirect to login page
+                // window.location.href = 'login.html';
+            });
+
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    const page = this.getAttribute('data-page');
+                    
+                    if (page === 'dashboard') {
+                        showDashboard();
+                    } else if (page === 'explore') {
+                        // If Explore is clicked directly, show the first topic but use last search query if available
+                        showExplorePage(1);
+                    } else if (page === 'threat') {
+                        showThreatPage();
+                    }
+                });
+            });
+
+            // Topic click events
+            topicsList.addEventListener('click', function(e) {
+                const topicItem = e.target.closest('.topic-item');
+                if (topicItem) {
+                    const topicId = parseInt(topicItem.getAttribute('data-id'));
+                    const topic = topicsData.find(t => t.id === topicId);
+                    
+                    // Set the search query to the topic name
+                    window.lastSearchQuery = topic.name;
+                    
+                    // Navigate to Threat page with the topic name
+                    showThreatPage();
+                    
+                    // Update navigation
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    document.querySelector('[data-page="threat"]').classList.add('active');
+                }
+            });
+
+            // Explore page topic click events
+            exploreTopicsList.addEventListener('click', function(e) {
+                const topicItem = e.target.closest('.topic-item');
+                if (topicItem) {
+                    const topicId = parseInt(topicItem.getAttribute('data-id'));
+                    showExplorePage(topicId);
+                }
+            });
+
+            // Back buttons
+            backButtonExplore.addEventListener('click', function() {
+                showDashboard();
+                
+                // Update navigation
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="dashboard"]').classList.add('active');
+            });
+
+            backButtonThreat.addEventListener('click', function() {
+                showDashboard();
+                
+                // Update navigation
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="dashboard"]').classList.add('active');
+            });
+
+            backButtonUser.addEventListener('click', function() {
+                showThreatPage();
+                
+                // Update navigation
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="threat"]').classList.add('active');
+            });
+
+            // Search functionality
+            searchButton.addEventListener('click', function() {
+                performSearch();
+            });
+
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Username click events for threat table
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('username-link')) {
+                    e.preventDefault();
+                    const username = e.target.getAttribute('data-username');
+                    showUserDetails(username);
+                }
+            });
+        }
+
+        // Show dashboard page
+        function showDashboard() {
+            dashboardPage.style.display = 'block';
+            explorePage.style.display = 'none';
+            threatPage.style.display = 'none';
+            userDetailsPage.style.display = 'none';
+            
+            // Update charts when returning to dashboard
+            setTimeout(() => {
+                if (sentimentChart) {
+                    sentimentChart.update();
+                }
+            }, 100);
+        }
+
+        // Show explore page with topic details
+        function showExplorePage(topicId) {
+            dashboardPage.style.display = 'none';
+            explorePage.style.display = 'block';
+            threatPage.style.display = 'none';
+            userDetailsPage.style.display = 'none';
+            
+            // Find the selected topic
+            const topic = topicsData.find(t => t.id === topicId);
+            
+            if (topic) {
+                // Update results bar - use the search query if available, otherwise use topic name
+                const displayName = window.lastSearchQuery || topic.name;
+                resultsTopicName.textContent = displayName;
+                
+                // Update metrics
+                mentionsCount.textContent = topic.mentions.toLocaleString();
+                
+                // Update sentiment with appropriate class
+                sentimentScore.textContent = `${topic.sentiment}% Positive`;
+                sentimentScore.className = 'metric-value';
+                if (topic.sentiment >= 60) {
+                    sentimentScore.classList.add('sentiment-positive');
+                } else if (topic.sentiment >= 40) {
+                    sentimentScore.classList.add('sentiment-neutral');
+                } else {
+                    sentimentScore.classList.add('sentiment-negative');
+                }
+                
+                // Update threat level with appropriate class
+                threatLevel.textContent = topic.threat.charAt(0).toUpperCase() + topic.threat.slice(1);
+                threatLevel.className = 'metric-value';
+                threatLevel.classList.add(`threat-${topic.threat}`);
+                
+                // Update platforms
+                platformList.innerHTML = '';
+                topic.platforms.forEach(platform => {
+                    const platformTag = document.createElement('div');
+                    platformTag.className = 'platform-tag';
+                    platformTag.textContent = platform;
+                    platformList.appendChild(platformTag);
+                });
+                
+                // Update related tags
+                updateRelatedTags(topic);
+                
+                // Initialize charts after a short delay to ensure DOM is ready
+                setTimeout(() => {
+                    initInterestChart(topic);
+                    initSentimentPieChart(topic);
+                    initPlatformBarChart(topic);
+                }, 100);
+                
+                // Render explore page components
+                renderExploreTopics();
+                renderSearchTags(topic);
+                renderPostsTable(topic);
+            }
+        }
+
+        // Show threat page
+        function showThreatPage() {
+            dashboardPage.style.display = 'none';
+            explorePage.style.display = 'none';
+            threatPage.style.display = 'block';
+            userDetailsPage.style.display = 'none';
+            
+            // Update threat data - use the search query if available
+            const displayKeyword = window.lastSearchQuery || 'cybersecurity';
+            threatKeyword.textContent = displayKeyword;
+            
+            threatScore.textContent = `${threatData.threatScore}/100`;
+            
+            // Update threat words
+            threatWords.innerHTML = '';
+            threatData.threatWords.forEach(word => {
+                const threatWordElement = document.createElement('div');
+                threatWordElement.className = 'threat-word';
+                threatWordElement.textContent = word;
+                threatWords.appendChild(threatWordElement);
+            });
+            
+            // Render threat table with the search keyword
+            renderThreatTable(displayKeyword);
+        }
+
+        // Show user details page
+        function showUserDetails(username) {
+            dashboardPage.style.display = 'none';
+            explorePage.style.display = 'none';
+            threatPage.style.display = 'none';
+            userDetailsPage.style.display = 'block';
+            
+            // Update navigation
+            navLinks.forEach(l => l.classList.remove('active'));
+            
+            // Render user details for the specific username
+            renderUserDetails(username);
+        }
+
+        // Update related tags based on topic
+        function updateRelatedTags(topic) {
+            // Use the topic's related searches
+            const tags = topic.relatedSearches || ['No related topics'];
+            
+            relatedTags.innerHTML = '';
+            tags.forEach(tag => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'tag';
+                tagElement.textContent = tag;
+                relatedTags.appendChild(tagElement);
+            });
+        }
+
+        // Perform search
+        function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (query) {
+                // Store the search query globally so other pages can access it
+                window.lastSearchQuery = query;
+                
+                // Check if the query matches any existing topic
+                const matchingTopic = topicsData.find(topic => 
+                    topic.name.toLowerCase().includes(query.toLowerCase())
+                );
+                
+                if (matchingTopic) {
+                    // Show the matching topic
+                    showExplorePage(matchingTopic.id);
+                } else {
+                    // Show the first topic as default for custom searches
+                    showExplorePage(1);
+                }
+                
+                // Update navigation
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector('[data-page="explore"]').classList.add('active');
+                
+                // Clear the search input
+                searchInput.value = '';
+            } else {
+                alert('Please enter a search term');
+            }
+        }
+    </script>
+</body>
+</html>
