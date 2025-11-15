@@ -920,80 +920,74 @@
         }
         
         // Login Form Functionality
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const employeeId = document.getElementById('employeeId').value;
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            
-            // Hide messages
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-            
-            // Simple validation
-            if (!employeeId || !password) {
-                showError(currentLanguage === 'en' ? 'Please fill in all fields' : 'Sila isi semua medan');
-                return;
-            }
-            
-            // Demo authentication - Replace these with your actual credentials
-            const validCredentials = [
-                { id: 'admin', password: 'admin123' },
-                { id: 'user001', password: 'password123' },
-                { id: 'PG-OSINT-001', password: 'osint123' }
-            ];
-            
-            const isValid = validCredentials.some(cred => 
-                cred.id === employeeId && cred.password === password
-            );
-            
-            if (isValid) {
-                showSuccess();
-                
-                // Simulate redirect to dashboard after 2 seconds
-                setTimeout(function() {
-                    // In a real application, you would redirect to the dashboard
-                    window.location.href = 'dashboard.html';
-                    // Reset form
-                    document.getElementById('loginForm').reset();
-                    resetButton();
-                    
-                    // For demo purposes, just show a message
-                    alert(currentLanguage === 'en' ? 'Login successful! Redirecting to dashboard...' : 'Log masuk berjaya! Mengalihkan ke papan pemuka...');
-                }, 2000);
-            } else {
-                showError(currentLanguage === 'en' ? 'Invalid Employee ID or Password. Please try again.' : 'ID Pekerja atau Kata Laluan tidak sah. Sila cuba lagi.');
-                resetButton();
-            }
-        });
+// Login Form Functionality
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const employeeId = document.getElementById('employeeId').value;
+    const password = document.getElementById('password').value;
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Hide messages
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+    
+    // Simple validation
+    if (!employeeId || !password) {
+        showError(currentLanguage === 'en' ? 'Please fill in all fields' : 'Sila isi semua medan');
+        return;
+    }
+    
+    // Demo authentication - Replace these with your actual credentials
+    const validCredentials = [
+        { id: 'admin', password: 'admin123' },
+        { id: 'user001', password: 'password123' },
+        { id: 'PG-OSINT-001', password: 'osint123' }
+    ];
+    
+    const isValid = validCredentials.some(cred => 
+        cred.id === employeeId && cred.password === password
+    );
+    
+    if (isValid) {
+        showSuccess();
         
-        function showError(message) {
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-        
-        function showSuccess() {
-            const successMessage = document.getElementById('successMessage');
-            successMessage.style.display = 'block';
-            
-            // Change button to success state
-            const loginButton = document.querySelector('.login-button');
-            loginButton.textContent = currentLanguage === 'en' ? 'Accessing Dashboard...' : 'Mengakses Papan Pemuka...';
-            loginButton.style.background = '#38a169';
-            loginButton.disabled = true;
-        }
-        
-        function resetButton() {
-            const loginButton = document.querySelector('.login-button');
-            setTimeout(function() {
-                loginButton.textContent = translations[currentLanguage]['login_button'];
-                loginButton.style.background = '#2aa9a6';
-                loginButton.disabled = false;
-            }, 2000);
-        }
+        // REDIRECT TO DASHBOARD AFTER 2 SECONDS - FIXED!
+        setTimeout(function() {
+            window.location.href = 'dashboard.html';
+        }, 2000);
+    } else {
+        showError(currentLanguage === 'en' ? 'Invalid Employee ID or Password. Please try again.' : 'ID Pekerja atau Kata Laluan tidak sah. Sila cuba lagi.');
+        resetButton();
+    }
+});
+
+function showError(message) {
+    const errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+}
+
+function showSuccess() {
+    const successMessage = document.getElementById('successMessage');
+    successMessage.style.display = 'block';
+    
+    // Change button to success state
+    const loginButton = document.querySelector('.login-button');
+    loginButton.textContent = currentLanguage === 'en' ? 'Accessing Dashboard...' : 'Mengakses Papan Pemuka...';
+    loginButton.style.background = '#38a169';
+    loginButton.disabled = true;
+}
+
+function resetButton() {
+    const loginButton = document.querySelector('.login-button');
+    setTimeout(function() {
+        loginButton.textContent = translations[currentLanguage]['login_button'];
+        loginButton.style.background = '#2aa9a6';
+        loginButton.disabled = false;
+    }, 2000);
+}
     </script>
 </body>
 </html>
