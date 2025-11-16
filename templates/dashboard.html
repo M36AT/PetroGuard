@@ -866,7 +866,7 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="profile-dropdown" id="profileDropdown">
-                    <a href="#"><i class="fas fa-user-circle"></i> View Profile</a>
+                    <a href="profile.html"><i class="fas fa-user-circle"></i> View Profile</a>
                     <a href="#" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -2047,11 +2047,13 @@
 
             // Logout functionality
             logoutButton.addEventListener('click', function() {
-                alert('Logging out...');
-                // In a real app, this would redirect to login page
-                // window.location.href = 'login.html';
+                if(confirm('Are you sure you want to logout?')) {
+                // Clear any stored user data
+                localStorage.removeItem('userName');
+                // Redirect to logout page
+                window.location.href = 'logout.html';
+                }
             });
-
             // Navigation
             navLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
@@ -2310,6 +2312,19 @@
                 alert('Please enter a search term');
             }
         }
+
+        // Add this to your dashboard.html script to test the profile link
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileLink = document.querySelector('a[href="profile.html"]');
+            if (profileLink) {
+                console.log('Profile link found:', profileLink);
+                profileLink.addEventListener('click', function(e) {
+                    console.log('Profile link clicked!');
+                });
+            } else {
+                console.log('Profile link NOT found!');
+            }
+        });
     </script>
 </body>
 </html>
