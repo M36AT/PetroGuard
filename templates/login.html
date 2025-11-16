@@ -941,9 +941,9 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     
     // Demo authentication - Replace these with your actual credentials
     const validCredentials = [
-        { id: 'admin', password: 'admin123' },
-        { id: 'user001', password: 'password123' },
-        { id: 'PG-OSINT-001', password: 'osint123' }
+        { id: 'admin', password: 'admin123', name: 'Alex Johnson' },
+        { id: 'user001', password: 'password123', name: 'Sara Smith' },
+        { id: 'PG-OSINT-001', password: 'osint123', name: 'Alex Johnson' }
     ];
     
     const isValid = validCredentials.some(cred => 
@@ -952,7 +952,13 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     
     if (isValid) {
         showSuccess();
-        
+    
+    // Store user data before redirecting
+    const user = validCredentials.find(cred => cred.id === employeeId);
+    if (user) {
+        localStorage.setItem('userName', user.name || 'Alex Johnson');
+        localStorage.setItem('employeeId', employeeId);
+    }    
         // REDIRECT TO DASHBOARD AFTER 2 SECONDS - FIXED!
         setTimeout(function() {
             window.location.href = 'dashboard.html';
