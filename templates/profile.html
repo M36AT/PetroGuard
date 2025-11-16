@@ -859,6 +859,14 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            // Load user data
+            const userName = localStorage.getItem('userName') || 'Alex Johnson';
+            const employeeId = localStorage.getItem('employeeId') || 'PG-2023-0421';
+    
+            // Update profile with actual user data
+            document.querySelector('.profile-name').textContent = userName;
+            document.querySelector('.info-item:nth-child(6) .info-value').textContent = employeeId;
+    
             // Set up event listeners
             setupEventListeners();
         });
