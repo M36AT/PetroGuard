@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetroGuard - Logout</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #2aa9a6, #9ee4e1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+        
+        .logout-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .logout-icon {
+            font-size: 64px;
+            color: #2aa9a6;
+            margin-bottom: 20px;
+        }
+        
+        .logout-title {
+            font-size: 28px;
+            color: #2aa9a6;
+            margin-bottom: 15px;
+        }
+        
+        .logout-message {
+            color: #6c757d;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .logout-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            background: #2aa9a6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #238a87;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .petronas-info {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #9ee4e1;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 600px) {
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .logout-container {
+                padding: 30px 20px;
+            }
+            
+            .logout-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-container">
+            <div class="logo">PetroGuard</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="logout-container">
+            <div class="logout-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h1 class="logout-title">You've been logged out</h1>
+            <p class="logout-message">
+                Thank you for using PetroGuard OSINT Dashboard. Your session has been securely terminated.
+                <br><br>
+                To protect your data, please close your browser if you're on a shared device.
+            </p>
+            <div class="logout-actions">
+                <button class="btn btn-primary" id="loginAgainBtn">
+                    <i class="fas fa-sign-in-alt"></i> Log In Again
+                </button>
+                <button class="btn btn-secondary" id="goHomeBtn">
+                    <i class="fas fa-home"></i> Back to Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="petronas-info">Know more about Petronas</div>
+            <div class="footer-links">
+                <a href="#">Term of Use</a>
+                <a href="#">Privacy Statement</a>
+                <a href="#">Cookie Settings</a>
+            </div>
+            <div class="footer-copyright">
+                © 2023 PetroGuard OSINT Tool. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const loginAgainBtn = document.getElementById('loginAgainBtn');
+        const goHomeBtn = document.getElementById('goHomeBtn');
+
+        // Event Listeners
+        loginAgainBtn.addEventListener('click', function() {
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+
+        goHomeBtn.addEventListener('click', function() {
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+
+        // Auto-redirect to login page after 5 seconds
+        setTimeout(function() {
+            window.location.href = 'login.html';
+        }, 5000); // 5 seconds
+    </script>
+</body>
+</html>
