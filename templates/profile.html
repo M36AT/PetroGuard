@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetroGuard - User Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #2aa9a6, #9ee4e1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-right: 40px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .language-selector {
+            position: relative;
+        }
+        
+        .language-button {
+            background: white;
+            color: #2aa9a6;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .language-button:hover {
+            background: #f0f0f0;
+        }
+        
+        .language-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background: white;
+            width: 150px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 101;
+        }
+        
+        .language-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .language-dropdown a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+        }
+        
+        .language-dropdown a:hover {
+            background: #f5f7fa;
+        }
+        
+        .language-dropdown a:last-child {
+            border-bottom: none;
+        }
+        
+        .language-dropdown a.active {
+            color: #2aa9a6;
+            font-weight: 600;
+        }
+        
+        .user-profile {
+            position: relative;
+        }
+        
+        .profile-icon {
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2aa9a6;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .profile-icon:hover {
+            transform: scale(1.05);
+        }
+        
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            width: 180px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-dropdown a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+        }
+        
+        .profile-dropdown a:hover {
+            background: #f5f7fa;
+        }
+        
+        .profile-dropdown a:last-child {
+            border-bottom: none;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            background: #2aa9a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+        
+        .back-button:hover {
+            background: #238a87;
+        }
+        
+        .profile-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+        
+        /* Profile Sidebar */
+        .profile-sidebar {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2aa9a6, #9ee4e1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 48px;
+            color: white;
+        }
+        
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2aa9a6;
+            margin-bottom: 5px;
+        }
+        
+        .profile-role {
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2aa9a6;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .profile-action-btn {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .profile-action-btn:hover {
+            background: #e9ecef;
+        }
+        
+        .profile-action-btn.primary {
+            background: #2aa9a6;
+            color: white;
+        }
+        
+        .profile-action-btn.primary:hover {
+            background: #238a87;
+        }
+        
+        /* Profile Content */
+        .profile-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .profile-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2aa9a6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .edit-btn {
+            background: transparent;
+            border: 1px solid #2aa9a6;
+            color: #2aa9a6;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .edit-btn:hover {
+            background: #2aa9a6;
+            color: white;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-weight: 500;
+        }
+        
+        .preferences-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .preference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .preference-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preference-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .preference-desc {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #2aa9a6;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Activity Section */
+        .activity-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        
+        .activity-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2aa9a6;
+        }
+        
+        .activity-time {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .activity-desc {
+            font-weight: 500;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 30px;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #9ee4e1;
+        }
+        
+        .petronas-info {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 900px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+            }
+            
+            .logo {
+                margin-right: 20px;
+            }
+            
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .header-controls {
+                order: 2;
+                margin-left: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-container">
+            <div class="logo">PetroGuard</div>
+            <div class="nav-links">
+                <a href="dashboard.html">Home</a>
+                <a href="dashboard.html">Explore</a>
+                <a href="dashboard.html">Threat</a>
+            </div>
+        </div>
+        <div class="header-controls">
+            <div class="language-selector">
+                <button class="language-button" id="languageButton">
+                    <i class="fas fa-globe"></i> English
+                </button>
+                <div class="language-dropdown" id="languageDropdown">
+                    <a href="#" class="active" data-lang="en">English</a>
+                    <a href="#" data-lang="ms">Malay</a>
+                </div>
+            </div>
+            <div class="user-profile">
+                <div class="profile-icon" id="profileIcon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <a href="profile.html"><i class="fas fa-user-circle"></i> View Profile</a>
+                    <a href="logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>User Profile</h1>
+            <button class="back-button" id="backButton">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+        
+        <div class="profile-container">
+            <!-- Profile Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2 class="profile-name">Alex Johnson</h2>
+                <p class="profile-role">Security Analyst</p>
+                
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">42</div>
+                        <div class="stat-label">Searches</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">18</div>
+                        <div class="stat-label">Reports</div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="profile-action-btn">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <button class="profile-action-btn">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                    <button class="profile-action-btn primary">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <!-- Personal Information Section -->
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-user-circle"></i> Personal Information
+                        </h2>
+                        <button class="edit-btn">Edit</button>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Full Name</div>
+                            <div class="info-value">Alex Johnson</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">alex.johnson@petroguard.com</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Phone</div>
+                            <div class="info-value">+60192215300</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Department</div>
+                            <div class="info-value">Cyber Security</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Location</div>
+                            <div class="info-value">Kuala Lumpur, Malaysia</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Employee ID</div>
+                            <div class="info-value">PG-2023-0421</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Settings Section -->
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-cog"></i> Account Settings
+                        </h2>
+                        <button class="edit-btn">Edit</button>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Username</div>
+                            <div class="info-value">alexj</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Role</div>
+                            <div class="info-value">Analyst</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Account Created</div>
+                            <div class="info-value">March 15, 2023</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Last Login</div>
+                            <div class="info-value">Today, 09:42 AM</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Preferences -->
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-bell"></i> Notification Preferences
+                        </h2>
+                    </div>
+                    
+                    <div class="preferences-list">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-name">Email Notifications</div>
+                                <div class="preference-desc">Receive alerts via email</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-name">Threat Alerts</div>
+                                <div class="preference-desc">High priority threat notifications</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-name">Weekly Reports</div>
+                                <div class="preference-desc">Summary of weekly activities</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-name">Platform Updates</div>
+                                <div class="preference-desc">New features and improvements</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-history"></i> Recent Activity
+                        </h2>
+                    </div>
+                    
+                    <div class="activity-timeline">
+                        <div class="activity-item">
+                            <div class="activity-time">Today, 10:30 AM</div>
+                            <div class="activity-desc">Ran threat analysis for "Cybersecurity Threats"</div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-time">Today, 09:15 AM</div>
+                            <div class="activity-desc">Exported report for management review</div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-time">Yesterday, 04:20 PM</div>
+                            <div class="activity-desc">Added new threat keywords to word cloud</div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-time">Yesterday, 02:45 PM</div>
+                            <div class="activity-desc">Searched for "Renewable Energy" trends</div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-time">Nov 18, 2023, 11:30 AM</div>
+                            <div class="activity-desc">Updated notification preferences</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <div class="petronas-info">Know more about Petronas</div>
+                <div class="footer-links">
+                    <a href="#">Term of Use</a>
+                    <a href="#">Privacy Statement</a>
+                    <a href="#">Cookie Settings</a>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                © 2023 PetroGuard OSINT Tool. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const profileIcon = document.getElementById('profileIcon');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const languageButton = document.getElementById('languageButton');
+        const languageDropdown = document.getElementById('languageDropdown');
+        const languageOptions = document.querySelectorAll('.language-dropdown a');
+        const backButton = document.getElementById('backButton');
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up event listeners
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Profile dropdown toggle
+            if (profileIcon) {
+                profileIcon.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (profileDropdown) {
+                        profileDropdown.classList.toggle('active');
+                    }
+                });
+            }
+
+            // Language dropdown toggle
+            if (languageButton) {
+                languageButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (languageDropdown) {
+                        languageDropdown.classList.toggle('active');
+                    }
+                });
+            }
+
+            // Language selection
+            if (languageOptions) {
+                languageOptions.forEach(option => {
+                    option.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const lang = this.getAttribute('data-lang');
+                        applyLanguage(lang);
+                        if (languageDropdown) {
+                            languageDropdown.classList.remove('active');
+                        }
+                    });
+                });
+            }
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                if (profileDropdown) profileDropdown.classList.remove('active');
+                if (languageDropdown) languageDropdown.classList.remove('active');
+            });
+
+            // Back button
+            if (backButton) {
+                backButton.addEventListener('click', function() {
+                    window.location.href = 'dashboard.html';
+                });
+            }
+
+            // Navigation links
+            const navLinks = document.querySelectorAll('.nav-links a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = this.getAttribute('href');
+                });
+            });
+        }
+
+        // Apply language to the interface
+        function applyLanguage(lang) {
+            if (languageButton) {
+                if (lang === 'en') {
+                    languageButton.innerHTML = '<i class="fas fa-globe"></i> English';
+                } else {
+                    languageButton.innerHTML = '<i class="fas fa-globe"></i> Malay';
+                }
+            }
+            
+            // Update active language in dropdown
+            if (languageOptions) {
+                languageOptions.forEach(option => {
+                    if (option.getAttribute('data-lang') === lang) {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
