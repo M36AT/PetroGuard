@@ -1143,7 +1143,7 @@
                 threat: "Threat",
                 
                 // Dashboard
-                welcome_message: "Hello, ",
+                welcome_message: "Hello, Alex ",
                 welcome_description: "Welcome to your OSINT dashboard. Here's what's happening today.",
                 search_placeholder: "Enter keyword to search...",
                 search_button: "Search",
@@ -1586,15 +1586,19 @@
 
         // Initialize the dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            // Load and display user name
+            const userName = localStorage.getItem('userName') || 'Alex Johnson';
+            document.getElementById('userName').textContent = userName;
+    
             // Populate topics list
             renderTopics();
-            
+    
             // Initialize sentiment chart
             initSentimentChart();
-            
+    
             // Set up event listeners
             setupEventListeners();
-            
+    
             // Apply initial language
             applyLanguage(currentLanguage);
         });
